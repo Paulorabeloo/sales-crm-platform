@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Sales CRM design tokens — brand orange identity.
+ *
+ * Official brand ramp: #F7C325 · #F9A11B · #EF9134 · #E2711D · #C65102.
+ * The PRIMARY sits on the burnt end (#E2711D→#C65102) so white text
+ * passes AA in light mode; dark mode lifts it toward #EF9134 over the
+ * dark surfaces. The lighter golds act as supporting tones (badge tints,
+ * selection, chart ramp) — never as button fills with white text.
+ * #E64A2E (reddish) is intentionally NOT used: it collides with the
+ * destructive red.
+ *
+ * Neutrals are warm greige (hue ~55–80, near-zero chroma) so grays and
+ * accent share one temperature. Semantics stay semantic: desaturated
+ * green for "won", calm red for "lost"; the "cooling" warning keeps a
+ * yellowish hue (~95) AND an outline badge treatment so it never reads
+ * as the brand orange.
+ *
+ * Dark mode uses layered surfaces (sidebar < background < card < popover),
+ * never flat black. Charts use the brand ramp as a SEQUENTIAL scale
+ * (lightness monotonic, per the dataviz skill).
+ */
+:root {
+  --background: oklch(0.9755 0.0028 80);
+  --foreground: oklch(0.245 0.009 60);
+  --card: oklch(0.998 0.001 90);
+  --card-foreground: oklch(0.245 0.009 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.245 0.009 60);
+  /* Brand ramp reference: #F7C325 → #F9A11B → #EF9134 → #E2711D → #C65102.
+   * PRIMARY is the light amber (≈#F9A11B) used as FILL with dark espresso
+   * text on top (AA ≈6:1). Orange-as-TEXT never uses --primary — it uses
+   * --accent-foreground (burnt, AA on light surfaces). */
+  --primary: oklch(0.79 0.148 72);
+  --primary-foreground: oklch(0.27 0.06 55);
+  --secondary: oklch(0.951 0.005 78);
+  --secondary-foreground: oklch(0.33 0.012 55);
+  --muted: oklch(0.951 0.005 78);
+  --muted-foreground: oklch(0.5 0.014 62);
+  --accent: oklch(0.955 0.026 72);
+  --accent-foreground: oklch(0.43 0.105 48);
+  --destructive: oklch(0.52 0.16 25);
+  --destructive-foreground: oklch(0.985 0.005 25);
+  --success: oklch(0.51 0.1 155);
+  --success-foreground: oklch(0.985 0.005 155);
+  --warning: oklch(0.7 0.118 95);
+  --warning-foreground: oklch(0.38 0.07 88);
+  --border: oklch(0.912 0.006 78);
+  --input: oklch(0.893 0.007 78);
+  --ring: oklch(0.62 0.14 55);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.961 0.0045 80);
+  --sidebar-foreground: oklch(0.39 0.011 58);
+  /* Sequential brand ramp (dark → light), lightness monotonic */
+  --chart-1: #c65102;
+  --chart-2: #e2711d;
+  --chart-3: #ef9134;
+  --chart-4: #f9a11b;
+  --chart-5: #f7c325;
+}
+
+.dark {
+  /* Dark surfaces stay close to neutral — the warmth lives in the
+   * accents, not in the background tint. */
+  --background: oklch(0.168 0.004 60);
+  --foreground: oklch(0.92 0.005 75);
+  --card: oklch(0.202 0.0045 60);
+  --card-foreground: oklch(0.92 0.005 75);
+  --popover: oklch(0.226 0.005 60);
+  --popover-foreground: oklch(0.92 0.005 75);
+  /* Light gold (≈#F9A11B→#F7C325) fill with espresso text */
+  --primary: oklch(0.8 0.142 76);
+  --primary-foreground: oklch(0.24 0.05 60);
+  --secondary: oklch(0.256 0.005 60);
+  --secondary-foreground: oklch(0.885 0.006 70);
+  --muted: oklch(0.256 0.005 60);
+  --muted-foreground: oklch(0.662 0.008 65);
+  --accent: oklch(0.285 0.018 60);
+  --accent-foreground: oklch(0.87 0.085 70);
+  --destructive: oklch(0.64 0.15 25);
+  --destructive-foreground: oklch(0.16 0.03 25);
+  --success: oklch(0.68 0.1 155);
+  --success-foreground: oklch(0.16 0.03 155);
+  --warning: oklch(0.79 0.11 96);
+  --warning-foreground: oklch(0.22 0.05 90);
+  --border: oklch(0.268 0.005 60);
+  --input: oklch(0.295 0.0055 60);
+  --ring: oklch(0.75 0.12 70);
+  --sidebar: oklch(0.149 0.0035 60);
+  --sidebar-foreground: oklch(0.782 0.006 68);
+  /* Same ramp, shifted one step lighter for dark surfaces */
+  --chart-1: #ef9134;
+  --chart-2: #f9a11b;
+  --chart-3: #f7c325;
+  --chart-4: #e2711d;
+  --chart-5: #c65102;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scrollbar-color: var(--border) transparent;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* next/font attaches --font-instrument on <body>, so reference it
+   * directly — the @theme inline token is not emitted as a CSS var. */
+  font-family: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--primary) 22%, transparent);
+}
+
+/* Hairline, rounded scrollbars everywhere (WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Kanban horizontal rail keeps a slimmer bar */
+.kanban-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.kanban-scroll::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* Number-dense UI: KPIs, currency, table figures */
+.tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+}
