@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+# Only the real env file — .env.example stays versioned
+.env
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+uvicorn*.log
