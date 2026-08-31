@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CRM Lead Capture</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+      body { width: 300px; background: #FFFFFF; color: #1F2937; font-size: 13px; }
+      .header { background: #F9A11B; color: #1F2937; padding: 12px 16px; font-weight: 700; font-size: 15px; }
+      .content { padding: 14px 16px; }
+      .field { margin-bottom: 10px; }
+      .field label { display: block; font-size: 11px; font-weight: 600; color: #6B7280; margin-bottom: 3px; }
+      .field input { width: 100%; border: 1px solid #D6D3D1; border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #1F2937; }
+      .field input:focus { outline: 2px solid #F9A11B; outline-offset: 0; border-color: #F9A11B; }
+      .btn { display: block; width: 100%; border: none; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+      .btn.primary { background: #F9A11B; color: #1F2937; }
+      .btn.primary:hover { background: #E08F0F; }
+      .btn.secondary { background: #F5F5F4; color: #1F2937; border: 1px solid #E7E5E4; margin-top: 8px; }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .divider { border-top: 1px solid #E7E5E4; margin: 14px 0; }
+      .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9CA3AF; margin-bottom: 8px; }
+      .status { background: #FAFAF9; border: 1px solid #E7E5E4; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+      .status .who { font-weight: 700; }
+      .status .role { color: #6B7280; font-size: 12px; }
+      .message { font-size: 12px; margin-top: 8px; min-height: 16px; }
+      .message.error { color: #B91C1C; }
+      .message.ok { color: #15803D; }
+      .hint { color: #9CA3AF; font-size: 11px; margin-top: 8px; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="header" id="title"></div>
+    <div class="content">
+      <div id="login-view" class="hidden">
+        <div class="field">
+          <label for="email" id="email-label"></label>
+          <input type="email" id="email" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label for="password" id="password-label"></label>
+          <input type="password" id="password" autocomplete="current-password" />
+        </div>
+        <button class="btn primary" id="login-btn"></button>
+        <div class="message" id="login-message"></div>
+      </div>
+
+      <div id="session-view" class="hidden">
+        <div class="status">
+          <div id="logged-as-label" class="role"></div>
+          <div class="who" id="user-name"></div>
+          <div class="role" id="user-email"></div>
+        </div>
+        <button class="btn secondary" id="logout-btn"></button>
+        <div class="hint" id="session-hint"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title" id="settings-title"></div>
+      <div class="field">
+        <label for="api-base" id="api-base-label"></label>
+        <input type="url" id="api-base" />
+      </div>
+      <div class="field">
+        <label for="crm-base" id="crm-base-label"></label>
+        <input type="url" id="crm-base" />
+      </div>
+      <button class="btn secondary" id="save-config-btn"></button>
+      <div class="message" id="config-message"></div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
