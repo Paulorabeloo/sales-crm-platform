@@ -68,7 +68,7 @@ function focusField(key: string) {
 }
 
 /**
- * Closing checklist: on the stage right before the won stage,
+ * Closing checklist (spec 10.5): on the stage right before the won stage,
  * shows the won stage's required_fields as a live tick list. Fully generic —
  * items come from the stage config, never hardcoded.
  */

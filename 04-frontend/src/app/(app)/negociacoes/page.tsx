@@ -53,7 +53,7 @@ function DealsPageInner() {
     search: initialSearch,
   });
 
-  // Default cycle filter = active cycle; ALL when none exists.
+  // Default cycle filter = active cycle (spec 10.1); ALL when none exists.
   React.useEffect(() => {
     if (filters.cycle_id === "" && activeCycleQuery.isSuccess) {
       const active = activeCycleQuery.data;

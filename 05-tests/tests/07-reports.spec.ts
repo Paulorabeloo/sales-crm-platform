@@ -68,7 +68,7 @@ test.describe("Relatórios (admin)", () => {
     await expect(kpiValue("CAC médio")).toHaveText("–");
 
     // Funil novo: 1ª e última etapas na tabela, com contagem e legenda
-    // diagnóstica por transição.
+    // diagnóstica por transição (spec 11).
     await expect(
       page.getByRole("heading", { name: "Funil de conversão" }),
     ).toBeVisible();
@@ -97,7 +97,7 @@ test.describe("Relatórios (admin)", () => {
       .filter({ has: page.getByRole("heading", { name: "Vendas", exact: true }) });
     await expect(salesCard).toContainText(/R\$/);
 
-    // Seção nova: sem próximo passo por consultor.
+    // Seção nova (spec 09.2): sem próximo passo por consultor.
     await expect(
       page.getByRole("heading", { name: "Sem próximo passo por consultor" }),
     ).toBeVisible();

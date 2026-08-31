@@ -1,4 +1,4 @@
-"""Sales cycles: read authenticated, CRUD + activation admin.
+"""Sales cycles (spec 10.1): read authenticated, CRUD + activation admin.
 
 At most one active cycle (partial unique index). New deals default to the
 active cycle; the kanban countdown reads ``GET /cycles/active``.

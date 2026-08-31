@@ -1,4 +1,4 @@
-"""Goal schemas — per-cycle enrollment targets."""
+"""Goal schemas (spec 10.3) — per-cycle enrollment targets."""
 
 import uuid
 from datetime import datetime

@@ -97,7 +97,7 @@ async def summary_report(
     cycle_id: uuid.UUID | None = None,
 ) -> SummaryReport:
     """KPI cards: leads in period, cohort conversion, median first-contact
-    delay, sales (won in the period) and the average CAC."""
+    delay, sales (won in the period) and the average CAC (spec 10.2)."""
     extra, params = _deal_filters(unit_id, owner_id, cycle_id)
     params |= {"date_from": date_from, "date_to": date_to}
 
@@ -135,7 +135,7 @@ async def summary_report(
         )
     ).mappings().one()
 
-    # Follow-up discipline: % of OPEN deals without a future
+    # Follow-up discipline (spec 09.2): % of OPEN deals without a future
     # next_contact_at, per consultant. Current-state metric — the period
     # filter does not apply; unit/owner filters do.
     nns_params = {k: v for k, v in params.items() if k not in ("date_from", "date_to")}
@@ -161,7 +161,7 @@ async def summary_report(
         )
     ).mappings().all()
 
-    # Average CAC: registered spend whose month falls in the
+    # Average CAC (spec 10.2): registered spend whose month falls in the
     # period vs enrollments won in the period. Monthly budgets are prorated by
     # the days each month contributes to the period (M5). Spend has no owner
     # dimension, so an owner filter makes the KPI meaningless -> None (never
@@ -354,7 +354,7 @@ async def lost_reasons_report(
         )
     ).mappings().all()
 
-    # Catalog objection grouping: lost deals by deals.objection_id.
+    # Catalog objection grouping (spec 12.2): lost deals by deals.objection_id.
     catalog_rows = (
         await db.execute(
             text(
@@ -582,7 +582,7 @@ async def cooling_report(
     )
 
 
-# --- CAC ------------------------------------------------------------
+# --- CAC (spec 10.2) ------------------------------------------------------------
 
 _CAC_GROUPS: dict[str, tuple[str, str, str]] = {
     # group_by -> (deals key expr for leads, deals key expr for enrollments,
@@ -612,12 +612,13 @@ async def cac_report(
     cycle: Cycle | None,
     group_by: str,  # source | campaign | unit | month
 ) -> CacReport:
-    """Spend x results. Two period modes:
+    """Spend x results (spec 10.2). Two period modes:
 
     - ``from``/``to``: leads by ``created_at``, enrollments by ``won_at``,
       spend by the months intersecting the period.
     - ``cycle``: leads/enrollments are the cycle's deals (no date bound);
-      spend covers the months from the cycle start to its deadline (or today).
+      spend covers the months from the cycle start (or the oldest deal in
+      the cycle, when it predates it) to the deadline (or today).
 
     In both modes a month that the period only touches partially contributes
     its budget PRORATED by days (M5): a 15-day slice of a 30-day month is half
@@ -631,7 +632,21 @@ async def cac_report(
         deal_where = "d.deleted_at IS NULL AND d.cycle_id = :cycle_id"
         won_where = deal_where + " AND d.status = 'won'"
         deal_params: dict[str, Any] = {"cycle_id": str(cycle.id)}
+        # The spend window must COVER the deals being measured, otherwise the
+        # report divides N months of leads by a shorter slice of budget and the
+        # cost per enrollment comes out far too cheap. Deals can predate
+        # ``starts_on`` legitimately: rollover moves open deals from the
+        # previous cycle, and a cycle may be created after its leads exist.
+        earliest_deal = await db.scalar(
+            text(
+                "SELECT MIN(d.created_at)::date FROM deals d "
+                "WHERE d.deleted_at IS NULL AND d.cycle_id = :cycle_id"
+            ),
+            {"cycle_id": str(cycle.id)},
+        )
         range_start = cycle.starts_on
+        if earliest_deal is not None and earliest_deal < range_start:
+            range_start = earliest_deal
         range_end = (cycle.deadline_on or datetime.now(UTC).date()) + timedelta(days=1)
         month_from = _month_floor(range_start)
         month_to = range_end
@@ -737,7 +752,7 @@ async def cac_report(
     )
 
 
-# --- Conversation metrics -------------------------------------------
+# --- Conversation metrics (spec 12.3) -------------------------------------------
 
 async def conversations_report(
     db: AsyncSession,

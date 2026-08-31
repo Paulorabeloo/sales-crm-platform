@@ -71,7 +71,7 @@ function RescueRow({
 }
 
 /**
- * Win-back list: recoverable lost deals from previous cycles,
+ * Win-back list (spec 10.4): recoverable lost deals from previous cycles,
  * grouped by lost reason. "Reabrir no ciclo atual" creates a NEW deal (the
  * old one stays lost) and links both timelines.
  */

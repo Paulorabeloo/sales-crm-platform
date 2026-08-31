@@ -46,7 +46,7 @@ async function cycleRow(
   throw new Error(`Ciclo "${name}" não encontrado na tabela`);
 }
 
-test.describe("Ciclos: countdown no kanban + rollover", () => {
+test.describe("Ciclos (spec 10.1): countdown no kanban + rollover", () => {
   let page: Page;
   let api: ApiClient;
   let dealId: string;

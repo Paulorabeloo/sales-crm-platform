@@ -14,7 +14,7 @@ export function daysUntil(dateISO: string): number {
 }
 
 /**
- * Active-cycle deadline countdown chip for the kanban header.
+ * Active-cycle deadline countdown chip for the kanban header (spec 10.1).
  * Urgent tone under 7 days; destructive when the deadline has passed.
  */
 export function CycleCountdown() {

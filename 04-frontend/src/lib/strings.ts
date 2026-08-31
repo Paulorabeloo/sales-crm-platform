@@ -1,12 +1,12 @@
 /**
  * Central pt-BR UI strings for the Sales CRM.
  * Code is in English; every user-facing string lives here (ADR-007).
- * No i18n framework, just a single typed object.
+ * No i18n framework — a single typed object.
  */
 export const t = {
   app: {
     name: "CRM de Vendas",
-    description: "CRM de vendas: funil, contatos e relatórios",
+    description: "CRM de vendas — funil, contatos e relatórios",
   },
   common: {
     loading: "Carregando…",

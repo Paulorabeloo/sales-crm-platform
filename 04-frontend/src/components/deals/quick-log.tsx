@@ -72,9 +72,9 @@ interface QuickLogActionsProps {
 }
 
 /**
- * One-click contact logging: 4 outcomes -> POST /deals/{id}/log,
- * chained with the next-contact prompt (cadence-preselected, the spec/09.3).
- * "Conversou, com objeção" opens the catalog select first (phase ) and sends
+ * One-click contact logging (spec 12.3): 4 outcomes -> POST /deals/{id}/log,
+ * chained with the next-contact prompt (cadence-preselected, spec 09.2/09.3).
+ * "Conversou, com objeção" opens the catalog select first (wave 2) and sends
  * objection_id with the log.
  */
 export function QuickLogActions({ dealId, asMenu = false }: QuickLogActionsProps) {
@@ -103,7 +103,7 @@ export function QuickLogActions({ dealId, asMenu = false }: QuickLogActionsProps
       return;
     }
     if (kind === "talked_objection") {
-      // phase : pick the objection BEFORE logging (objection_id in the log).
+      // Wave 2: pick the objection BEFORE logging (objection_id in the log).
       setObjectionOpen(true);
       return;
     }
@@ -206,7 +206,7 @@ export function QuickLogActions({ dealId, asMenu = false }: QuickLogActionsProps
         </DialogContent>
       </Dialog>
 
-      {/* Objection catalog select (phase ) — logs talked_objection itself. */}
+      {/* Objection catalog select (wave 2) — logs talked_objection itself. */}
       <ObjectionDialog
         dealId={dealId}
         open={objectionOpen}
@@ -237,7 +237,7 @@ export function QuickLogActions({ dealId, asMenu = false }: QuickLogActionsProps
 const OTHER = "__other__";
 
 /**
- * "Conversou, com objeção" dialog (phase ): select from the objections
+ * "Conversou, com objeção" dialog (wave 2): select from the objections
  * catalog (log carries objection_id and the rebuttal shows inline as
  * coaching) or describe a free-text objection (kept in
  * enrollment_data.main_objection, as before).

@@ -15,7 +15,7 @@ const MY_NAME = "Admin E2E 12";
 // Fonte única por tentativa: um retry não colide com o lançamento anterior.
 const SOURCE = `meta-${RUN_ID}`;
 
-test.describe("CAC + metas", () => {
+test.describe("CAC (spec 10.2) + metas (spec 10.3)", () => {
   let page: Page;
   let api: ApiClient;
 

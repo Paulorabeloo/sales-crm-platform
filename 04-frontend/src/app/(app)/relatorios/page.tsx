@@ -27,7 +27,7 @@ import {
   CacSection,
   ConversationsSection,
   GoalsSection,
-} from "@/components/reports/phase -sections";
+} from "@/components/reports/wave2-sections";
 import {
   EmptyState,
   ErrorState,
@@ -120,7 +120,7 @@ function pct(fraction: number | null | undefined): string {
 function FunnelSection({ filters }: { filters: ReportFilters }) {
   const query = useReportFunnel(filters);
   const stages = query.data?.stages ?? [];
-  // Diagnostic legends assume the default 6-stage funnel: each
+  // Diagnostic legends assume the default 6-stage funnel (spec 11): each
   // transition drop points to a distinct operational problem.
   const showDiagnostics = stages.length === 6;
 
@@ -720,7 +720,7 @@ export default function ReportsPage() {
     if (!loading && !isAdmin) router.replace("/negociacoes");
   }, [loading, isAdmin, router]);
 
-  // Default cycle filter = active cycle; ALL when none exists.
+  // Default cycle filter = active cycle (spec 10.1); ALL when none exists.
   React.useEffect(() => {
     if (cycleId === "" && activeCycleQuery.isSuccess) {
       setCycleId(activeCycleQuery.data ? activeCycleQuery.data.id : ALL);

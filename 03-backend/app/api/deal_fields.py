@@ -1,4 +1,4 @@
-"""Deal field catalog — feeds the required-fields multi-select in
+"""Deal field catalog (spec 08) — feeds the required-fields multi-select in
 the stage settings UI. Keys + types only; pt-BR labels live in the frontend."""
 
 from fastapi import APIRouter

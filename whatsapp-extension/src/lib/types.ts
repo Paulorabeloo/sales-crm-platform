@@ -1,6 +1,6 @@
 /**
  * API response shapes (subset the extension consumes).
- * Source of truth: 03-backend/app/schemas.
+ * Source of truth: 03-backend/app/schemas + 14/16 wave notes.
  */
 
 export interface TokenResponse {

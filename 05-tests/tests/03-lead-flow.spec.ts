@@ -144,7 +144,7 @@ test.describe("Fluxo do lead (caminho crítico, funil novo)", () => {
     await expect(
       page.getByText(/Próximo: \d{2}\/\d{2}\/\d{4}/).first(),
     ).toBeVisible();
-    // Playbook da etapa visível no detalhe.
+    // Playbook da etapa (spec 12.1) visível no detalhe.
     await expect(page.getByText("Guia desta etapa")).toBeVisible();
   });
 

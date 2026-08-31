@@ -1,7 +1,7 @@
-"""Objection catalog: read authenticated, CRUD admin.
+"""Objection catalog (spec 12.2): read authenticated, CRUD admin.
 
 Each objection carries a suggested rebuttal and an optional linked WhatsApp
-template. Deals reference objections via ``deals.objection_id``
+template (spec 09.4). Deals reference objections via ``deals.objection_id``
 (FK RESTRICT), so referenced objections must be deactivated, not deleted.
 """
 

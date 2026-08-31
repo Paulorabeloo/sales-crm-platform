@@ -22,7 +22,7 @@ const NONE = "__none__";
 const LEGACY = "__legacy__";
 
 /**
- * Catalog objection on the deal detail: a select over the
+ * Catalog objection on the deal detail (spec 12.2): a select over the
  * objections catalog (PATCH deals.objection_id). A pre-catalog free-text
  * value (enrollment_data.main_objection) shows as the "Outro: ..." option.
  * Selecting an objection reveals the suggested rebuttal and, when a template

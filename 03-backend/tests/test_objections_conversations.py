@@ -1,4 +1,4 @@
-"""Objection catalog + conversation metrics."""
+"""Objection catalog (spec 12.2) + conversation metrics (spec 12.3)."""
 
 from datetime import UTC, datetime, timedelta
 
@@ -189,7 +189,7 @@ async def test_lost_reasons_report_groups_by_catalog_objection(
     ]
 
 
-# --- Conversation metrics -----------------------------------------
+# --- Conversation metrics (spec 12.3) -----------------------------------------
 
 
 async def test_conversations_report_per_consultant(

@@ -1,4 +1,4 @@
-"""Campaign spend + CAC report and goals + progress.
+"""Campaign spend + CAC report (spec 10.2) and goals + progress (spec 10.3).
 
 Monthly budgets are prorated by the days each month contributes to the report
 period (M5), so every CAC assertion here pins an explicit window instead of
@@ -453,3 +453,75 @@ async def test_goal_progress_and_my_progress(
     assert len(mine["rows"]) == 1
     assert mine["rows"][0]["target_user_id"] == me["id"]
     assert mine["rows"][0]["won_count"] == 1
+
+
+async def test_cac_cycle_window_covers_deals_created_before_the_cycle_start(
+    client: AsyncClient, admin_token: str, db_session_factory
+):
+    """The cycle spend window must COVER the deals it measures.
+
+    Deals legitimately predate ``starts_on``: rollover carries open deals over
+    from the previous cycle, and a cycle is often created after its leads
+    already exist. When the window did not stretch back to them, the report
+    divided months of leads by a single day of budget and the cost per
+    enrollment came out roughly thirty times too cheap.
+    """
+    from sqlalchemy import text as sa_text
+
+    today = datetime.now(UTC).date()
+    cycle_id = (
+        await create_cycle(
+            client,
+            admin_token,
+            name="Janela",
+            starts_on=today.isoformat(),
+            activate=True,
+        )
+    )["id"]
+
+    contact = await make_contact(client, admin_token, "+5563999870077", "Lead antigo")
+    deal_id = (await create_deal(client, admin_token, contact, source="google"))["id"]
+
+    # The lead entered two months before the cycle was opened.
+    old_month = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+    old_created = datetime(old_month.year, old_month.month, 15, 12, 0, tzinfo=UTC)
+    async with db_session_factory() as session:
+        await session.execute(
+            sa_text("UPDATE deals SET created_at = :ts WHERE id = :id"),
+            {"ts": old_created, "id": deal_id},
+        )
+        await session.commit()
+
+    days_in_old_month = monthrange(old_month.year, old_month.month)[1]
+    await client.post(
+        "/api/v1/campaign-spend",
+        headers=auth(admin_token),
+        json={"month": old_month.isoformat(), "source": "google", "amount": "3100.00"},
+    )
+
+    response = await client.get(
+        f"/api/v1/reports/cac?group_by=source&cycle_id={cycle_id}",
+        headers=auth(admin_token),
+    )
+    assert response.status_code == 200, response.text
+    report = response.json()
+    row = next(r for r in report["rows"] if r["group_key"] == "google")
+
+    # The lead is counted, so the budget of its month must be counted with it.
+    # The window starts at the oldest deal (day 15), so that month contributes
+    # its last 17 of 31 days: budget spent before the cycle's first lead
+    # belongs to the previous cycle, not to this one.
+    covered = days_in_old_month - old_created.day + 1
+    expected = (Decimal("3100.00") * covered / days_in_old_month).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    one_day = (Decimal("3100.00") / days_in_old_month).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    assert row["leads_count"] == 1
+    assert row["spend"] == str(expected), (
+        "the spend window must reach back to the oldest deal of the cycle; "
+        f"got {row['spend']}, expected {expected} "
+        f"(the bug charged a single day: {one_day})"
+    )
+    assert Decimal(row["spend"]) > one_day * 5

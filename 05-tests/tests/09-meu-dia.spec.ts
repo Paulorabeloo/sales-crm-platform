@@ -12,7 +12,7 @@ test.describe.configure({ mode: "serial" });
 
 const LEAD_NAME = `Lead Meu Dia ${RUN_ID}`;
 
-test.describe("Meu Dia: responder agora + quick log com cadência", () => {
+test.describe("Meu Dia (spec 09.1): responder agora + quick log com cadência", () => {
   let page: Page;
   let api: ApiClient;
   let dealId: string;

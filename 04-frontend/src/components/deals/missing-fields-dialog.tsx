@@ -66,7 +66,7 @@ function isFilled(key: string, def: DealFieldDef, value: FieldValue): boolean {
 }
 
 /**
- * Stage gate dialog: lists the 422 `missing_fields` with inline
+ * Stage gate dialog (spec 08): lists the 422 `missing_fields` with inline
  * inputs, saves them and lets the caller repeat the blocked action.
  */
 export function MissingFieldsDialog({

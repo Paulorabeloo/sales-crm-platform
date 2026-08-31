@@ -59,7 +59,7 @@ export interface LostReason {
   is_recoverable: boolean;
 }
 
-// ---------- Cycles (phase ) ----------
+// ---------- Cycles (wave 2) ----------
 
 export interface Cycle {
   id: string;
@@ -174,9 +174,9 @@ export interface Deal {
   won_at: string | null;
   lost_at: string | null;
   enrollment_data: EnrollmentData;
-  /** Sales cycle the deal belongs to (phase , always set). */
+  /** Sales cycle the deal belongs to (wave 2, always set). */
   cycle_id: string;
-  /** Catalog objection (phase ); free-text main_objection stays as legacy. */
+  /** Catalog objection (wave 2); free-text main_objection stays as legacy. */
   objection_id: string | null;
   created_at: string;
   updated_at: string;
@@ -327,7 +327,7 @@ export interface MessageTemplate {
   updated_at: string;
 }
 
-// ---------- Objections (phase ) ----------
+// ---------- Objections (wave 2) ----------
 
 export interface Objection {
   id: string;
@@ -340,7 +340,7 @@ export interface Objection {
   updated_at: string;
 }
 
-// ---------- Campaign spend (phase ) ----------
+// ---------- Campaign spend (wave 2) ----------
 
 export interface CampaignSpend {
   id: string;
@@ -354,7 +354,7 @@ export interface CampaignSpend {
   updated_at: string;
 }
 
-// ---------- Goals (phase ) ----------
+// ---------- Goals (wave 2) ----------
 
 export type GoalScope = "consultant" | "unit";
 
@@ -388,7 +388,7 @@ export interface GoalProgressResponse {
   rows: GoalProgressRow[];
 }
 
-// ---------- Rescue / win-back (phase ) ----------
+// ---------- Rescue / win-back (wave 2) ----------
 
 export interface RecoverableDealItem {
   deal_id: string;
@@ -418,7 +418,7 @@ export interface ReportFilters {
   to?: string;
   unit_id?: string;
   owner_id?: string;
-  /** phase : restrict to one sales cycle (ANDed with the other filters). */
+  /** Wave 2: restrict to one sales cycle (ANDed with the other filters). */
   cycle_id?: string;
 }
 
@@ -474,11 +474,11 @@ export interface LostReasonsReport {
   total_lost: number;
   reasons: LostReasonRow[];
   top_objections: { objection: string; count: number }[];
-  /** phase : grouping by the objections catalog (deals.objection_id). */
+  /** Wave 2: grouping by the objections catalog (deals.objection_id). */
   objection_breakdown: { objection_id: string; name: string; count: number }[];
 }
 
-// ---------- CAC report (phase ) ----------
+// ---------- CAC report (wave 2) ----------
 
 export interface CacRow {
   /** Unit name / "YYYY-MM" / source / campaign; null = no attribution. */
@@ -502,7 +502,7 @@ export interface CacReport {
   cac_average: string | null;
 }
 
-// ---------- Conversations report (phase ) ----------
+// ---------- Conversations report (wave 2) ----------
 
 export interface ConversationRow {
   user_id: string | null;

@@ -11,7 +11,7 @@ import { cadencePreset } from "@/lib/utils";
 
 /**
  * "Registrar 1º contato" button chained with the next-contact prompt
- * (the spec: the prompt also fires on first-contact registration).
+ * (spec 09.2: the prompt also fires on first-contact registration).
  */
 export function FirstContactButton({
   dealId,

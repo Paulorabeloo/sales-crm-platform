@@ -1,4 +1,4 @@
-"""Campaign spend input — admin-only monthly ad-spend records.
+"""Campaign spend input (spec 10.2) — admin-only monthly ad-spend records.
 
 One row per (month, source, campaign, unit) combination; the CAC report joins
 these against won deals. Amounts are edited via PATCH; identity changes are

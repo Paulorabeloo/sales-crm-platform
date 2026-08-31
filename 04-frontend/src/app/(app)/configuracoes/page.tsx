@@ -483,7 +483,7 @@ function UnitsTab() {
 
 // ---------------------------------------------------------------- Stages tab
 
-/** Per-stage config (the spec/12): required fields + playbook textarea. */
+/** Per-stage config (spec 08/12): required fields + playbook textarea. */
 function StageConfigDialog({ stage }: { stage: Stage }) {
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<string[]>(
@@ -764,7 +764,7 @@ function StagesTab() {
 
 // ---------------------------------------------------------------- Messages tab
 
-/** WhatsApp message template editor with live variable preview. */
+/** WhatsApp message template editor with live variable preview (spec 09.4). */
 function TemplateCard({ template }: { template: MessageTemplate }) {
   const [name, setName] = React.useState(template.name);
   const [body, setBody] = React.useState(template.body);

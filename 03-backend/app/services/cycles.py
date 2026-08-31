@@ -1,4 +1,4 @@
-"""Sales-cycle business rules: active-cycle resolution,
+"""Sales-cycle business rules (spec 10.1): active-cycle resolution,
 activation (single active, partial unique index) and open-deal rollover.
 """
 
@@ -102,7 +102,7 @@ async def rollover(
     db: AsyncSession, source: Cycle, user: User
 ) -> tuple[int, Cycle]:
     """Move the OPEN deals of ``source`` into the active cycle, logging a
-    ``cycle_changed`` activity per deal (the spec rollover). The source's
+    ``cycle_changed`` activity per deal (spec 10.1 rollover). The source's
     won/lost deals stay put — history and metrics are preserved."""
     active = await require_active_cycle(db)
     if source.id == active.id:

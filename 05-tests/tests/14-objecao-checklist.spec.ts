@@ -21,7 +21,7 @@ function labeledField(page: Page, label: string): Locator {
     .last();
 }
 
-test.describe("Objeção do catálogo + checklist de fechamento", () => {
+test.describe("Objeção do catálogo (spec 12.2) + checklist de fechamento (spec 10.5)", () => {
   let page: Page;
   let api: ApiClient;
   let dealId: string;

@@ -1,5 +1,5 @@
 /**
- * Message-template variable rendering (see the message-templates API contract).
+ * Message-template variable rendering (contract 14-wave1-notes.md section 4.8).
  * The backend stores the raw body; the client replaces the variables.
  * Unknown or empty variables become an empty string, never the literal tag.
  */

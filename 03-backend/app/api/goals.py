@@ -1,4 +1,4 @@
-"""Goals: per-cycle enrollment targets.
+"""Goals (spec 10.3): per-cycle enrollment targets.
 
 CRUD is admin-only. Progress:
 - ``GET /goals/progress`` (admin) — every goal of the cycle, ranked by pct.
@@ -107,7 +107,7 @@ async def goals_progress(
     admin: AdminUser, db: DbSession, cycle_id: uuid.UUID | None = None
 ) -> GoalProgressOut:
     """Every goal of the cycle (default: active) with won_count/target/pct,
-    ranked by pct — the consultant ranking of the spec."""
+    ranked by pct — the consultant ranking of spec 10.3."""
     resolved = await _resolve_cycle_id(db, cycle_id)
     return GoalProgressOut(cycle_id=resolved, rows=await _progress_rows(db, resolved))
 

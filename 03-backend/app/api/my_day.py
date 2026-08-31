@@ -1,4 +1,4 @@
-"""My Day — the consultant's prioritized work queue.
+"""My Day — the consultant's prioritized work queue (spec 09.1).
 
 Single aggregate endpoint, role-scoped:
 - CONSULTOR: own deals/tasks (+ the unassigned queue in "respond now").

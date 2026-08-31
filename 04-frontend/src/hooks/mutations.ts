@@ -171,7 +171,7 @@ export function useQuickLog(dealId: string) {
       kind: QuickLogKind;
       note?: string;
       next_contact_at?: string;
-      /** Catalog objection; only valid with kind=talked_objection (phase ). */
+      /** Catalog objection; only valid with kind=talked_objection (wave 2). */
       objection_id?: string;
     }) => dealsApi.log(dealId, body),
     onSuccess: (_res, body) => {
@@ -256,7 +256,7 @@ export function useMarkLost(dealId: string) {
 }
 
 /**
- * Rescue action (phase ): creates a NEW deal in the active cycle from a lost
+ * Rescue action (wave 2): creates a NEW deal in the active cycle from a lost
  * one. Returns the new deal so the caller can link to it in the toast.
  */
 export function useReopenInCycle() {

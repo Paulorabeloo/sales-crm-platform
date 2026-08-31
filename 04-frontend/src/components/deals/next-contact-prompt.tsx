@@ -30,7 +30,7 @@ interface NextContactPromptProps {
 const BASE_OPTIONS = [1, 3, 7];
 
 /**
- * Lightweight one-click "next contact" prompt, chained after
+ * Lightweight one-click "next contact" prompt (spec 09.2), chained after
  * quick logs, first contact and stage moves.
  */
 export function NextContactPrompt({

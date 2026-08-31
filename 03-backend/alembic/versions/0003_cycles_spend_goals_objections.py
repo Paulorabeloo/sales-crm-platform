@@ -1,19 +1,19 @@
-"""phase : sales cycles, campaign spend (CAC), goals, win-back, objections.
+"""Wave 2: sales cycles, campaign spend (CAC), goals, win-back, objections.
 
-Additive migration on top of 0002 (the spec blocks 1-4 + the spec block 2):
+Additive migration on top of 0002 (spec 10 blocks 1-4 + spec 12 block 2):
 
-- ``cycles`` table — enrollment/sales cycles; at most ONE active
+- ``cycles`` table (spec 10.1) — enrollment/sales cycles; at most ONE active
   (partial unique index). The migration itself creates "Ciclo 1" (active) and
   backfills every existing deal into it so ``deals.cycle_id`` can be NOT NULL.
 - ``deals.cycle_id`` (FK, NOT NULL after backfill) + index.
-- ``campaign_spend`` table — monthly ad spend input; uniqueness on
+- ``campaign_spend`` table (spec 10.2) — monthly ad spend input; uniqueness on
   (month, source, campaign, unit_id) with NULLS NOT DISTINCT (PG15+).
-- ``goals`` table — per-cycle enrollment targets, scope
+- ``goals`` table (spec 10.3) — per-cycle enrollment targets, scope
   consultant XOR unit; one goal per target per cycle.
-- ``lost_reasons.is_recoverable`` — win-back flag; seeded
+- ``lost_reasons.is_recoverable`` (spec 10.4) — win-back flag; seeded
   recoverable: "Sem resposta/sumiu", "Preço/mensalidade",
   "Sem ENEM/documentação" (admin edits via PATCH).
-- ``objections`` table — objection catalog with suggested
+- ``objections`` table (spec 12.2) — objection catalog with suggested
   rebuttal + optional linked WhatsApp template.
 - ``deals.objection_id`` (nullable FK) — main objection from the catalog
   (``enrollment_data.main_objection`` stays as free-text legacy).
@@ -37,7 +37,7 @@ depends_on: str | Sequence[str] | None = None
 DEFAULT_CYCLE_ID = "018f0000-0000-7000-8000-0000000000c1"
 
 UPGRADE_STATEMENTS: list[str] = [
-    # --- cycles ---------------------------------------------------
+    # --- cycles (spec 10.1) ---------------------------------------------------
     """
     CREATE TABLE cycles (
         id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -67,7 +67,7 @@ UPGRADE_STATEMENTS: list[str] = [
     f"UPDATE deals SET cycle_id = '{DEFAULT_CYCLE_ID}'",
     "ALTER TABLE deals ALTER COLUMN cycle_id SET NOT NULL",
     "CREATE INDEX ix_deals_cycle ON deals (cycle_id)",
-    # --- campaign_spend -------------------------------------------
+    # --- campaign_spend (spec 10.2) -------------------------------------------
     """
     CREATE TABLE campaign_spend (
         id          uuid          PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -89,7 +89,7 @@ UPGRADE_STATEMENTS: list[str] = [
     CREATE TRIGGER trg_campaign_spend_updated_at BEFORE UPDATE ON campaign_spend
         FOR EACH ROW EXECUTE FUNCTION set_updated_at()
     """,
-    # --- goals ----------------------------------------------------
+    # --- goals (spec 10.3) ----------------------------------------------------
     """
     CREATE TABLE goals (
         id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -114,13 +114,13 @@ UPGRADE_STATEMENTS: list[str] = [
     CREATE TRIGGER trg_goals_updated_at BEFORE UPDATE ON goals
         FOR EACH ROW EXECUTE FUNCTION set_updated_at()
     """,
-    # --- win-back flag --------------------------------------------
+    # --- win-back flag (spec 10.4) --------------------------------------------
     "ALTER TABLE lost_reasons ADD COLUMN is_recoverable boolean NOT NULL DEFAULT false",
     """
     UPDATE lost_reasons SET is_recoverable = true
     WHERE label IN ('Sem resposta/sumiu', 'Preço/mensalidade', 'Sem ENEM/documentação')
     """,
-    # --- objections -----------------------------------------------
+    # --- objections (spec 12.2) -----------------------------------------------
     """
     CREATE TABLE objections (
         id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),

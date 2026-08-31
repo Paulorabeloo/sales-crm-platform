@@ -1,4 +1,4 @@
-"""WhatsApp message templates: read authenticated, CRUD admin.
+"""WhatsApp message templates (spec 09.4): read authenticated, CRUD admin.
 
 The backend only stores the raw body — the FRONTEND renders the variables
 ``{{first_name}}``, ``{{course}}``, ``{{unit}}``, ``{{consultant}}`` from the

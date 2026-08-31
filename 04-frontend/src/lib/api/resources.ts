@@ -97,7 +97,7 @@ export const lostReasonsApi = {
   ) => api<LostReason>(`/lost-reasons/${id}`, { method: "PATCH", body }),
 };
 
-// ---------- Cycles (phase ) ----------
+// ---------- Cycles (wave 2) ----------
 
 export const cyclesApi = {
   list: () => api<Cycle[]>("/cycles"),
@@ -129,7 +129,7 @@ export const cyclesApi = {
     ),
 };
 
-// ---------- Campaign spend (phase , admin) ----------
+// ---------- Campaign spend (wave 2, admin) ----------
 
 export const campaignSpendApi = {
   list: (params?: { month_from?: string; month_to?: string }) =>
@@ -153,7 +153,7 @@ export const campaignSpendApi = {
     api<void>(`/campaign-spend/${id}`, { method: "DELETE" }),
 };
 
-// ---------- Goals (phase ) ----------
+// ---------- Goals (wave 2) ----------
 
 export const goalsApi = {
   list: (cycleId?: string) =>
@@ -183,7 +183,7 @@ export const goalsApi = {
     }),
 };
 
-// ---------- Objections (phase ) ----------
+// ---------- Objections (wave 2) ----------
 
 export const objectionsApi = {
   list: (includeInactive = false) =>
@@ -327,7 +327,7 @@ export interface KanbanFilters {
   cooling?: boolean;
   /** Open deals with no FUTURE next_contact_at (backend filter). */
   no_next_step?: boolean;
-  /** phase : restrict the board to one sales cycle. */
+  /** Wave 2: restrict the board to one sales cycle. */
   cycle_id?: string;
   /** Applied client-side — the backend kanban has no search param. */
   search?: string;
@@ -409,7 +409,7 @@ export const dealsApi = {
       },
     }),
   /** POST /deals/{id}/log — one-click contact outcome (quick log).
-   * objection_id is only accepted with kind=talked_objection (phase ). */
+   * objection_id is only accepted with kind=talked_objection (wave 2). */
   log: (
     id: string,
     body: {
@@ -419,7 +419,7 @@ export const dealsApi = {
       objection_id?: string;
     },
   ) => api<QuickLogResponse>(`/deals/${id}/log`, { method: "POST", body }),
-  /** Lost deals with a recoverable reason from non-active cycles (phase ). */
+  /** Lost deals with a recoverable reason from non-active cycles (wave 2). */
   recoverable: (cycleIdBefore?: string) =>
     api<RecoverableDealsResponse>("/deals/recoverable", {
       query: { cycle_id_before: cycleIdBefore },
@@ -507,7 +507,7 @@ export const reportsApi = {
     }),
   cooling: () => api<CoolingReport>("/reports/cooling"),
   /**
-   * CAC (phase ). Two exclusive modes: cycle_id (leads/wins of the cycle,
+   * CAC (wave 2). Two exclusive modes: cycle_id (leads/wins of the cycle,
    * spend across its months) OR from/to (leads by created_at, wins by won_at).
    */
   cac: (
@@ -519,7 +519,7 @@ export const reportsApi = {
         ? { cycle_id: f.cycle_id, group_by: groupBy }
         : { from: f.from, to: f.to, group_by: groupBy },
     }),
-  /** Conversation metrics per consultant (phase ). */
+  /** Conversation metrics per consultant (wave 2). */
   conversations: (f: Pick<ReportFilters, "from" | "to" | "cycle_id">) =>
     api<ConversationsReport>("/reports/conversations", {
       query: { from: f.from, to: f.to, cycle_id: f.cycle_id },

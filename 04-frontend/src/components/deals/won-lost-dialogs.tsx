@@ -96,7 +96,7 @@ export function MarkWonDialog({ deal }: { deal: Deal }) {
         </DialogContent>
       </Dialog>
 
-      {/* Stage gate: fill the missing fields, then retry the won. */}
+      {/* Stage gate (spec 08): fill the missing fields, then retry the won. */}
       <MissingFieldsDialog
         dealId={deal.id}
         missingFields={gateFields ?? []}

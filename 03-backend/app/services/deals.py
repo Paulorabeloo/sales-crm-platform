@@ -121,7 +121,7 @@ async def get_won_stage(db: AsyncSession, pipeline_id: uuid.UUID) -> Stage:
     return stage
 
 
-# --- Stage requirements gate ----------------------------------------
+# --- Stage requirements gate (spec 08) ----------------------------------------
 
 async def ensure_stage_requirements(
     db: AsyncSession, deal: Deal, target: Stage
@@ -331,7 +331,7 @@ async def _assign_open_unassigned_tasks(
     db: AsyncSession, deal: Deal, new_owner_id: uuid.UUID
 ) -> int:
     """Assign the deal's open, unassigned tasks (e.g. the webhook-created
-    "Make first contact" task) to the new owner. Returns count."""
+    "Make first contact" task) to the new owner (spec 09.3). Returns count."""
     tasks = (
         await db.scalars(
             select(Task).where(
@@ -350,7 +350,7 @@ async def _assign_open_unassigned_tasks(
 
 async def claim(db: AsyncSession, deal: Deal, user: User) -> Deal:
     """Consultant takes an unassigned deal from the queue (owner NULL → self).
-    The deal's open unassigned tasks come along."""
+    The deal's open unassigned tasks come along (spec 09.3)."""
     _ensure_open(deal)
     if deal.owner_id is not None:
         raise ConflictError("Deal already has an owner", code="deal_already_owned")
@@ -400,7 +400,7 @@ async def change_owner(
     return deal
 
 
-# --- Objection catalog ---------------------------------------------
+# --- Objection catalog (spec 12.2) ---------------------------------------------
 
 async def get_active_objection(db: AsyncSession, objection_id: uuid.UUID) -> Objection:
     """Resolve an ACTIVE catalog objection or fail with 422."""
@@ -416,7 +416,7 @@ async def get_active_objection(db: AsyncSession, objection_id: uuid.UUID) -> Obj
     return objection
 
 
-# --- Win-back -------------------------------------------------------
+# --- Win-back (spec 10.4) -------------------------------------------------------
 
 # Qualification fields worth carrying into the rescued deal. Closing/payment
 # fields are intentionally NOT copied (they would spuriously satisfy stage
@@ -431,7 +431,7 @@ _REOPEN_ENROLLMENT_KEYS: tuple[str, ...] = (
 
 
 async def reopen_in_cycle(db: AsyncSession, old_deal: Deal, user: User) -> Deal:
-    """Rescue a LOST deal into the active cycle: creates a NEW
+    """Rescue a LOST deal into the active cycle (spec 10.4): creates a NEW
     deal for the same contact (stage 1, owner = caller) cross-linked with the
     old one via activities. The old deal stays lost, untouched."""
     if old_deal.status != DealStatus.LOST:
@@ -502,7 +502,7 @@ async def reopen_in_cycle(db: AsyncSession, old_deal: Deal, user: User) -> Deal:
     return new_deal
 
 
-# --- Quick log (the spec data infra + the spec) --------------------------------
+# --- Quick log (spec 12.3 data infra + spec 09) --------------------------------
 
 QUICK_LOG_TYPES: frozenset[ActivityType] = frozenset(
     {
@@ -516,7 +516,7 @@ QUICK_LOG_TYPES: frozenset[ActivityType] = frozenset(
 
 async def count_no_answer_attempts(db: AsyncSession, deal_id: uuid.UUID) -> int:
     """Number of ``attempt_no_answer`` activities on the deal — the frontend
-    uses it to pre-select the follow-up cadence interval."""
+    uses it to pre-select the follow-up cadence interval (spec 09.3)."""
     count = await db.scalar(
         select(func.count())
         .select_from(Activity)
@@ -537,18 +537,18 @@ async def quick_log(
     next_contact_at: datetime | None,
     objection_id: uuid.UUID | None = None,
 ) -> tuple[Deal, int]:
-    """One-click contact-outcome registration.
+    """One-click contact-outcome registration (spec 12.3).
 
     Creates the typed activity (which bumps ``last_activity_at`` via the DB
     trigger), stores ``next_contact_at`` when sent, and for
     ``visit_scheduled`` also creates a "Visit" task due on the visit date.
     ``objection_id`` (only with ``talked_objection``) sets the deal's main
-    catalog objection.
+    catalog objection (spec 12.2).
 
     A quick log IS a contact touch: when the deal has no
     ``first_whatsapp_contact_at`` yet, the first quick log registers it
     (write-once, same semantics as POST /first-contact). This is what takes
-    the lead out of My Day's "respond now" section (the spec: "registra
+    the lead out of My Day's "respond now" section (spec 09.1: "registra
     contato + agenda D+1 -> some de Responder agora").
     Returns the refreshed deal + the total ``attempt_no_answer`` count.
     """

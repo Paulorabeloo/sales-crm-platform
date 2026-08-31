@@ -1,4 +1,4 @@
-"""Sales cycles: active-cycle default on creation (manual +
+"""Sales cycles (spec 10.1): active-cycle default on creation (manual +
 webhook), CRUD/activation RBAC, rollover of open deals, cycle filters."""
 
 from datetime import UTC, datetime, timedelta

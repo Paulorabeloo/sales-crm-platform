@@ -1,4 +1,4 @@
-"""My Day aggregate schemas — the consultant's prioritized work
+"""My Day aggregate schemas (spec 09.1) — the consultant's prioritized work
 queue. One request, four sections, priority order:
 
 1. ``respond_now`` — deals without first WhatsApp contact (own + unassigned

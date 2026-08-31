@@ -7,7 +7,7 @@ import { t } from "@/lib/strings";
 import { cn } from "@/lib/utils";
 
 /**
- * Discreet collapsible "Guia desta etapa" panel: renders the
+ * Discreet collapsible "Guia desta etapa" panel (spec 12.1): renders the
  * current stage's playbook (plain text), collapsed by default with a teaser.
  */
 export function StageGuide({ stageId }: { stageId: string }) {

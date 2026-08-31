@@ -20,7 +20,7 @@ class DealCreate(BaseModel):
     stage_id: uuid.UUID | None = None  # first stage of the pipeline when omitted
     owner_id: uuid.UUID | None = None  # admin may assign; consultor gets self
     unit_id: uuid.UUID | None = None
-    cycle_id: uuid.UUID | None = None  # active cycle when omitted
+    cycle_id: uuid.UUID | None = None  # active cycle when omitted (spec 10.1)
     value: Decimal | None = Field(default=None, ge=0)
     qualification: int | None = Field(default=None, ge=1, le=5)
     expected_close_date: date | None = None
@@ -45,12 +45,12 @@ class DealUpdate(BaseModel):
     campaign: str | None = Field(default=None, max_length=120)
     enrollment_data: EnrollmentData | None = None
     next_contact_at: datetime | None = None
-    objection_id: uuid.UUID | None = None  # catalog objection
+    objection_id: uuid.UUID | None = None  # catalog objection (spec 12.2)
 
 
 class DealMoveStage(BaseModel):
     stage_id: uuid.UUID
-    # Optional follow-up scheduling in the same request (the spec — avoids a
+    # Optional follow-up scheduling in the same request (spec 09.2 — avoids a
     # second call after the kanban drag prompt).
     next_contact_at: datetime | None = None
 
@@ -72,7 +72,7 @@ class DealFirstContactCorrection(BaseModel):
 
 class DealFirstContactIn(BaseModel):
     """Optional body for first-contact registration: schedule the next
-    follow-up in the same request."""
+    follow-up in the same request (spec 09.2)."""
 
     next_contact_at: datetime | None = None
 
@@ -90,7 +90,7 @@ QUICK_LOG_KIND_TO_ACTIVITY: dict[str, ActivityType] = {
 
 
 class QuickLogIn(BaseModel):
-    """One-click contact-outcome registration.
+    """One-click contact-outcome registration (spec 12.3).
 
     ``next_contact_at`` is required when ``kind == visit_scheduled`` (it is
     the visit date — a "Visit" task is created due that day)."""
@@ -98,7 +98,7 @@ class QuickLogIn(BaseModel):
     kind: QuickLogKind
     note: str | None = Field(default=None, max_length=2000)
     next_contact_at: datetime | None = None
-    # Catalog objection — only valid with kind=talked_objection;
+    # Catalog objection (spec 12.2) — only valid with kind=talked_objection;
     # sets the deal's main objection and is stored in the activity payload.
     objection_id: uuid.UUID | None = None
 
@@ -183,7 +183,7 @@ class KanbanResponse(BaseModel):
 
 
 class RecoverableDealRow(BaseModel):
-    """Win-back candidate: lost deal with a recoverable reason
+    """Win-back candidate (spec 10.4): lost deal with a recoverable reason
     from a cycle other than the active one."""
 
     deal_id: uuid.UUID

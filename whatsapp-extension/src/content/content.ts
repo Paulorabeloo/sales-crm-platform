@@ -377,7 +377,7 @@ function catalogsStale(): void {
 const adapter = ADAPTERS.find((a) => a.detect());
 if (adapter) {
   if (adapter.surface === "custom-inbox") {
-    console.info(`[CRM Lead Capture] ${STRINGS.inboxNotConfigured}`);
+    console.info(`[CRM Lead Capture] ${STRINGS.rdNotConfigured}`);
   }
   mount(adapter);
 }

@@ -3,7 +3,7 @@
 Keys in use:
 - ``cooling_days`` (int, default 3) — "cooling lead" threshold.
 - ``auto_first_contact_task`` (bool, default true) — webhook leads get an
-  automatic "Make first contact" task due today.
+  automatic "Make first contact" task due today (spec 09.3).
 - ``followup_cadence`` (list[int] of day offsets, default [1, 3, 7]) — the
   suggested next-attempt interval after each no-answer attempt: index 0 for
   the 1st attempt, index 1 for the 2nd, last item for every attempt after.

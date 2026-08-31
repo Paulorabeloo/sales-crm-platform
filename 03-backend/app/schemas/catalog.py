@@ -59,7 +59,7 @@ class StageOut(ORMModel):
 
 
 class DealFieldOut(BaseModel):
-    """Catalog entry for the required-fields multi-select. Labels
+    """Catalog entry for the required-fields multi-select (spec 08). Labels
     are pt-BR and live in the frontend (strings.ts) — keyed by ``key``."""
 
     key: str
@@ -108,7 +108,7 @@ class LostReasonOut(ORMModel):
     is_recoverable: bool
 
 
-# --- Objections ---------------------------------------------------
+# --- Objections (spec 12.2) ---------------------------------------------------
 
 class ObjectionCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)

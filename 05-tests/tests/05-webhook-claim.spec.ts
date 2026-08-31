@@ -103,7 +103,7 @@ test.describe("Webhook de captação + fila / assumir", () => {
     const deal = await consultorApi.getDeal(dealId);
     expect(deal.owner_id).toBe(me.id);
 
-    // Cadência: o webhook criou a task automática "Make first
+    // Cadência (spec 09.3): o webhook criou a task automática "Make first
     // contact" sem dono; o claim atribuiu ao consultor.
     const tasks = await consultorApi.get<
       Array<{ title: string; assigned_to: string | null }>

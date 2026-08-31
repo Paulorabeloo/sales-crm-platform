@@ -9,7 +9,7 @@ from pydantic import BaseModel
 # --- Summary (dashboard KPI cards) --------------------------------------------
 
 class NoNextStepRow(BaseModel):
-    """Per-consultant follow-up discipline: open deals without a
+    """Per-consultant follow-up discipline (spec 09.2): open deals without a
     FUTURE ``next_contact_at``. Current-state metric (not period-bound)."""
 
     owner_id: uuid.UUID | None
@@ -26,7 +26,7 @@ class SummaryReport(BaseModel):
     sales_count: int  # deals won in the period
     sales_value: Decimal
     no_next_step: list[NoNextStepRow]  # open deals w/o future next step, by owner
-    # Average acquisition cost: registered spend in the period's
+    # Average acquisition cost (spec 10.2): registered spend in the period's
     # months / enrollments won in the period. None when there is no matching
     # spend, no won deals, or when an owner filter is applied (spend has no
     # owner dimension) — never fabricated.
@@ -67,7 +67,7 @@ class ObjectionRow(BaseModel):
 
 class CatalogObjectionRow(BaseModel):
     """Lost deals grouped by the objection CATALOG (deals.objection_id) —
-    the spec. ``top_objections`` keeps the free-text legacy grouping."""
+    spec 12.2. ``top_objections`` keeps the free-text legacy grouping."""
 
     objection_id: uuid.UUID
     name: str
@@ -116,7 +116,7 @@ class SalesReport(BaseModel):
     total_value: Decimal
 
 
-# --- CAC ----------------------------------------------------------
+# --- CAC (spec 10.2) ----------------------------------------------------------
 
 class CacRow(BaseModel):
     """Spend x results for one group. Cost fields are None whenever there is
@@ -141,7 +141,7 @@ class CacReport(BaseModel):
     cac_average: Decimal | None  # total_spend / total_enrollments
 
 
-# --- Conversation metrics -----------------------------------------
+# --- Conversation metrics (spec 12.3) -----------------------------------------
 
 class ConversationRow(BaseModel):
     """Per-consultant quick-log outcomes. ``contact_to_conversation_rate`` =

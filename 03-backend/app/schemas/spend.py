@@ -1,4 +1,4 @@
-"""Campaign spend schemas — monthly ad-spend input for CAC."""
+"""Campaign spend schemas (spec 10.2) — monthly ad-spend input for CAC."""
 
 import uuid
 from datetime import date, datetime

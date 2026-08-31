@@ -168,7 +168,7 @@ export function useMessageTemplates(includeInactive = false) {
   });
 }
 
-// ---------- Cycles / goals / spend / objections / rescue (phase ) ----------
+// ---------- Cycles / goals / spend / objections / rescue (wave 2) ----------
 
 export function useCycles() {
   return useQuery({

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Discreet enrollment-goal progress for the logged-in consultant, shown in the
- * kanban header. Hidden when the user has no goal in the cycle.
+ * kanban header (spec 10.3). Hidden when the user has no goal in the cycle.
  */
 export function GoalProgressBar({ cycleId }: { cycleId?: string }) {
   const { data } = useMyGoalProgress(cycleId);

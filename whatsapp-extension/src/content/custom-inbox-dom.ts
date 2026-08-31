@@ -1,12 +1,11 @@
 /**
- * Custom inbox adapter: STRUCTURED STUB.
+ * the configured inbox adapter: STRUCTURED STUB.
  *
- * Second surface for any web-based messaging inbox other than WhatsApp Web.
- * It ships unconfigured (no hostnames, no selectors) so it never activates
- * until someone points it at a concrete inbox. To activate this surface:
+ * The real the configured inbox domain and DOM were not available on this machine
+ * when the extension was built. To activate this surface:
  *
- * 1. Log into the inbox and note the hostname of the web app (a tenant
- *    subdomain counts). Add it to INBOX_CONFIG.hostnames below.
+ * 1. Log into the configured inbox and note the hostname (e.g. "app.customInbox.com"
+ *    or a tenant subdomain). Add it to INBOX_CONFIG.hostnames below.
  * 2. Open a conversation, inspect the DOM (F12) and fill INBOX_CONFIG.selectors:
  *    - conversationRoot: an element that only exists with a chat open
  *    - contactName: the element whose textContent is the contact name
@@ -17,7 +16,7 @@
  *    - host_permissions: "https://<domain>/*"
  * 4. Rebuild (npm run build) and reload the extension.
  *
- * Full step-by-step instructions live in the README (section "Custom inbox").
+ * Full step-by-step instructions live in the README (section "the configured inbox").
  */
 
 import { normalizePhone } from "../lib/phone";
@@ -25,7 +24,7 @@ import type { ConversationInfo, SurfaceAdapter } from "./adapter";
 import { conversationKey } from "./adapter";
 
 export const INBOX_CONFIG = {
-  /** Hostnames where the inbox runs. Empty = adapter never activates. */
+  /** Hostnames where the configured inbox runs. Empty = adapter never activates. */
   hostnames: [] as string[],
   selectors: {
     /** Element present only when a conversation is open. */
@@ -62,8 +61,8 @@ export const customInboxAdapter: SurfaceAdapter = {
       if (!warned) {
         warned = true;
         console.warn(
-          "[CRM Lead Capture] Custom inbox adapter is not configured yet. " +
-            "Fill INBOX_CONFIG in src/content/custom-inbox-dom.ts (see README).",
+          "[CRM Lead Capture] the configured inbox adapter is not configured yet. " +
+            "Fill INBOX_CONFIG in src/content/customInbox-dom.ts (see README).",
         );
       }
       return null;

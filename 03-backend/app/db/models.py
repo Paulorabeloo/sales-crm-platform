@@ -63,7 +63,7 @@ from uuid6 import uuid7  # UUIDv7 generator; PG16 lacks uuidv7()
 # ---------------------------------------------------------------------------
 
 class UserRole(str, enum.Enum):
-    """Access role. No dynamic RBAC at this scale (see the architecture ADR)."""
+    """Access role. No dynamic RBAC at this scale (ADR in 01-arquitetura)."""
 
     ADMIN = "ADMIN"
     CONSULTOR = "CONSULTOR"
@@ -90,12 +90,12 @@ class ActivityType(str, enum.Enum):
     TASK_CREATED = "task_created"
     TASK_COMPLETED = "task_completed"
     OWNER_CHANGED = "owner_changed"
-    # Quick-log outcomes: one-click contact result registration.
+    # Quick-log outcomes (spec 12.3): one-click contact result registration.
     ATTEMPT_NO_ANSWER = "attempt_no_answer"
     TALKED_ADVANCE = "talked_advance"
     TALKED_OBJECTION = "talked_objection"
     VISIT_SCHEDULED = "visit_scheduled"
-    # Cycle machinery (the spec/10.4): rollover move + win-back link.
+    # Cycle machinery (spec 10.1/10.4): rollover move + win-back link.
     CYCLE_CHANGED = "cycle_changed"
     REOPENED_IN_CYCLE = "reopened_in_cycle"
 
@@ -252,12 +252,12 @@ class Stage(PKMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(Text)
     sort_order: Mapped[int]
     is_won_stage: Mapped[bool] = mapped_column(server_default=text("false"))
-    # Entry gate: field keys a deal must have filled to ENTER this
+    # Entry gate (spec 08): field keys a deal must have filled to ENTER this
     # stage. Valid keys come from app/services/deal_fields.py.
     required_fields: Mapped[list[str]] = mapped_column(
         JSONB, default=list, server_default=text("'[]'::jsonb")
     )
-    # Per-stage sales guide shown on the deal detail (the spec, admin-edited).
+    # Per-stage sales guide shown on the deal detail (spec 12.1, admin-edited).
     playbook: Mapped[Optional[str]] = mapped_column(Text)
 
     pipeline: Mapped[Pipeline] = relationship(back_populates="stages")
@@ -269,7 +269,7 @@ class Stage(PKMixin, TimestampMixin, Base):
 
 
 class Cycle(PKMixin, TimestampMixin, Base):
-    """Sales/enrollment cycle — e.g. "2026.2". At most ONE active
+    """Sales/enrollment cycle (spec 10.1) — e.g. "2026.2". At most ONE active
     cycle (partial unique index). Every deal belongs to a cycle; new deals
     default to the active one."""
 
@@ -284,7 +284,7 @@ class Cycle(PKMixin, TimestampMixin, Base):
 
 
 class CampaignSpend(PKMixin, TimestampMixin, Base):
-    """Monthly ad-spend input — the CAC report joins it against
+    """Monthly ad-spend input (spec 10.2) — the CAC report joins it against
     won deals. ``month`` is always the first day of the month (DB CHECK).
     Unique per (month, source, campaign, unit_id) with NULLS NOT DISTINCT."""
 
@@ -302,7 +302,7 @@ class CampaignSpend(PKMixin, TimestampMixin, Base):
 
 
 class Goal(PKMixin, TimestampMixin, Base):
-    """Per-cycle enrollment target. ``scope`` decides the target:
+    """Per-cycle enrollment target (spec 10.3). ``scope`` decides the target:
     ``consultant`` -> ``target_user_id``; ``unit`` -> ``unit_id`` (XOR, DB
     CHECK). One goal per target per cycle (unique, NULLS NOT DISTINCT)."""
 
@@ -326,7 +326,7 @@ class Goal(PKMixin, TimestampMixin, Base):
 
 
 class Objection(PKMixin, TimestampMixin, Base):
-    """Objection catalog: named objection + suggested rebuttal +
+    """Objection catalog (spec 12.2): named objection + suggested rebuttal +
     optional linked WhatsApp template. Deactivate instead of delete when the
     objection is referenced by deals (FK RESTRICT)."""
 
@@ -368,7 +368,7 @@ class LostReason(PKMixin, TimestampMixin, Base):
     label: Mapped[str] = mapped_column(Text, unique=True)
     sort_order: Mapped[int] = mapped_column(server_default=text("0"))
     is_active: Mapped[bool] = mapped_column(server_default=text("true"))
-    # Win-back flag: losses with this reason are candidates for
+    # Win-back flag (spec 10.4): losses with this reason are candidates for
     # the "reopen in the active cycle" rescue list.
     is_recoverable: Mapped[bool] = mapped_column(server_default=text("false"))
 
@@ -433,12 +433,12 @@ class Deal(PKMixin, TimestampMixin, Base):
     contact_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("contacts.id", ondelete="RESTRICT")
     )
-    # Sales cycle: mandatory dimension; defaults to the active
+    # Sales cycle (spec 10.1): mandatory dimension; defaults to the active
     # cycle on creation (manual and webhook).
     cycle_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("cycles.id", ondelete="RESTRICT"), index=True
     )
-    # Main objection from the catalog. Free-text legacy stays in
+    # Main objection from the catalog (spec 12.2). Free-text legacy stays in
     # enrollment_data.main_objection.
     objection_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey("objections.id", ondelete="RESTRICT")
@@ -453,7 +453,7 @@ class Deal(PKMixin, TimestampMixin, Base):
     )
     lost_notes: Mapped[Optional[str]] = mapped_column(Text)
     first_whatsapp_contact_at: Mapped[Optional[datetime]]
-    # Follow-up "next step": when the consultant plans to contact
+    # Follow-up "next step" (spec 09.2): when the consultant plans to contact
     # the lead again. NULL on an open deal = "no next step" badge.
     next_contact_at: Mapped[Optional[datetime]]
     last_activity_at: Mapped[datetime] = mapped_column(server_default=func.now())
@@ -548,10 +548,10 @@ class Activity(PKMixin, Base):
 class Task(PKMixin, TimestampMixin, Base):
     """Per-deal to-do. ``due_date`` is a plain date (no time in phase 1).
 
-    ``assigned_to`` / ``created_by`` are nullable since phase : the lead
+    ``assigned_to`` / ``created_by`` are nullable since wave 1: the lead
     webhook auto-creates a "Make first contact" task with no assignee and no
     creator (NULL = system); claiming the deal assigns its open unassigned
-    tasks to the new owner.
+    tasks to the new owner (spec 09.3).
     """
 
     __tablename__ = "tasks"
@@ -631,7 +631,7 @@ class WebhookDelivery(PKMixin, Base):
 
 
 class MessageTemplate(PKMixin, TimestampMixin, Base):
-    """WhatsApp message template. The backend only stores the
+    """WhatsApp message template (spec 09.4). The backend only stores the
     body; rendering the ``{{first_name}}/{{course}}/{{unit}}/{{consultant}}``
     variables is the frontend's job (it has the deal context loaded)."""
 

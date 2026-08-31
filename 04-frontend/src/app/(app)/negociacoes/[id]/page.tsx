@@ -242,11 +242,11 @@ export default function DealDetailPage() {
           {deal.status === "open" && <QuickLogActions dealId={deal.id} />}
         </div>
 
-        {/* Stage playbook */}
+        {/* Stage playbook (spec 12.1) */}
         <StageGuide stageId={deal.stage_id} />
       </div>
 
-      {/* Closing checklist: pre-won stage only, fully generic. */}
+      {/* Closing checklist (spec 10.5): pre-won stage only, fully generic. */}
       <ClosingChecklist deal={deal} stages={stages} />
 
       {/* Content grid */}
@@ -262,7 +262,7 @@ export default function DealDetailPage() {
         </div>
       </div>
 
-      {/* Stage gate: fill missing fields, then retry the move. */}
+      {/* Stage gate (spec 08): fill missing fields, then retry the move. */}
       {gate && (
         <MissingFieldsDialog
           dealId={deal.id}

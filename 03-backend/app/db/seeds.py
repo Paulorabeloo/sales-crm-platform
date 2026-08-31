@@ -6,15 +6,15 @@ Run with::
 
 Creates (only when missing — safe to re-run):
 - initial ADMIN user (email/password from env: ADMIN_EMAIL / ADMIN_PASSWORD)
-- default pipeline "Comercial" with the 6-stage milestone funnel,
-  including per-stage required-fields gates and playbooks
+- default pipeline "Comercial" with the 6-stage milestone funnel (spec 11),
+  including per-stage required-fields gates (spec 08) and playbooks (spec 12)
 - 6 lost reasons (gate decision #3)
 - 7 placeholder units (gate decision #4 — admin renames via settings UI)
 - app settings: cooling_days=3, auto_first_contact_task=true,
-  followup_cadence=[1, 3, 7]
-- 3 generic WhatsApp message templates
+  followup_cadence=[1, 3, 7] (spec 09.3)
+- 3 generic WhatsApp message templates (spec 09.4)
 
-Funnel note: stages are verifiable lead MILESTONES, not seller
+Funnel note (spec 11): stages are verifiable lead MILESTONES, not seller
 activities. Existing dev databases seeded with the old 4-stage funnel should
 be recreated (drop/create + alembic upgrade + seeds) — acceptable in dev.
 """
@@ -52,7 +52,7 @@ DEFAULT_PIPELINE_ID = uuid.UUID("018f0000-0000-7000-8000-000000000001")
 DEFAULT_CYCLE_ID = uuid.UUID("018f0000-0000-7000-8000-0000000000c1")
 
 # (name, sort_order, is_won_stage, required_fields, playbook)
-# required_fields follow the spec's defaults, mapped onto the real catalog keys
+# required_fields follow spec 11's defaults, mapped onto the real catalog keys
 # (spec table "admission_type" -> enrollment.entry_method, "monthly_value" ->
 # enrollment.monthly_fee_value). Admin can edit them via PATCH /stages/{id}.
 DEFAULT_STAGES: list[tuple[str, int, bool, list[str], str]] = [
@@ -99,14 +99,14 @@ DEFAULT_STAGES: list[tuple[str, int, bool, list[str], str]] = [
         "Concluído",
         6,
         True,
-        ["enrollment.contract_signed", "enrollment.ra_number"],
+        ["enrollment.contract_signed"],
         "Confirme contrato assinado e número de registro. Peça indicação e "
         "oriente os próximos passos.",
     ),
 ]
 
 # (label, is_recoverable) — recoverable losses feed the win-back list
-#; the admin can flip the flag via PATCH /lost-reasons/{id}.
+# (spec 10.4); the admin can flip the flag via PATCH /lost-reasons/{id}.
 LOST_REASONS: list[tuple[str, bool]] = [
     ("Sem resposta/sumiu", True),
     ("Preço/mensalidade", True),
@@ -116,7 +116,7 @@ LOST_REASONS: list[tuple[str, bool]] = [
     ("Outro", False),
 ]
 
-# Generic objection catalog: name + suggested rebuttal, brand-free.
+# Generic objection catalog (spec 12.2): name + suggested rebuttal, brand-free.
 OBJECTION_SEEDS: list[tuple[str, str, int]] = [
     (
         "Preço",
@@ -158,7 +158,7 @@ PLACEHOLDER_UNITS: list[str] = [
     "Unidade 7",
 ]
 
-# Generic, brand-free WhatsApp templates. Variables are rendered
+# Generic, brand-free WhatsApp templates (spec 09.4). Variables are rendered
 # by the FRONTEND: {{first_name}}, {{course}}, {{unit}}, {{consultant}}.
 DEFAULT_MESSAGE_TEMPLATES: list[tuple[str, str, int]] = [
     (
@@ -220,7 +220,7 @@ async def run_seeds() -> None:
                 )
                 logger.info("Created stage %r", name)
 
-        # --- Active cycle ----------------------------------------
+        # --- Active cycle (spec 10.1) ----------------------------------------
         active_cycle = await session.scalar(
             select(Cycle).where(Cycle.is_active.is_(True))
         )
@@ -246,7 +246,7 @@ async def run_seeds() -> None:
                 )
                 logger.info("Created lost reason %r", label)
 
-        # --- Objections -------------------------------------------
+        # --- Objections (spec 12.2) -------------------------------------------
         existing_objections = (await session.scalars(select(Objection.name))).all()
         for name, rebuttal, order in OBJECTION_SEEDS:
             if name not in existing_objections:

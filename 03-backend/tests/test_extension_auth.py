@@ -1,4 +1,4 @@
-"""phase : extension login flow (?client=extension) + deals contact_id filter."""
+"""Wave 3: extension login flow (?client=extension) + deals contact_id filter."""
 
 from httpx import AsyncClient
 

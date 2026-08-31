@@ -13,7 +13,7 @@ test.describe.configure({ mode: "serial" });
 // Primeiro nome entra na variável {{first_name}} do template.
 const LEAD_NAME = `Wpp Template${RUN_ID}`;
 
-test.describe("Templates de mensagem no botão WhatsApp", () => {
+test.describe("Templates de mensagem no botão WhatsApp (spec 09.4)", () => {
   let page: Page;
   let api: ApiClient;
   let dealId: string;

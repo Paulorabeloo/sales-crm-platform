@@ -90,7 +90,7 @@ def _apply_common_filters(
     if cycle_id is not None:
         stmt = stmt.where(Deal.cycle_id == cycle_id)
     if no_next_step:
-        # Open deals without a FUTURE next step (the spec kanban filter).
+        # Open deals without a FUTURE next step (spec 09.2 kanban filter).
         stmt = stmt.where(
             Deal.status == DealStatus.OPEN,
             (Deal.next_contact_at.is_(None))
@@ -254,7 +254,7 @@ async def kanban(
     )
 
 
-# --- Win-back list ------------------------------------------------
+# --- Win-back list (spec 10.4) ------------------------------------------------
 # NOTE: declared before /{deal_id} so "recoverable" is not parsed as a UUID.
 
 @router.get("/recoverable", response_model=RecoverableDealsOut)
@@ -422,7 +422,7 @@ async def update_deal(
         # Explicit null clears the next step ("no next step" badge returns).
         deal.next_contact_at = body.next_contact_at
     if "objection_id" in body.model_fields_set:
-        # Catalog objection; explicit null clears it.
+        # Catalog objection (spec 12.2); explicit null clears it.
         if body.objection_id is not None:
             await deal_service.get_active_objection(db, body.objection_id)
         deal.objection_id = body.objection_id
@@ -453,7 +453,7 @@ async def move_stage(
     Entering a stage with ``required_fields`` configured validates them ->
     422 ``stage_requirements_missing`` with the ``missing_fields`` list.
     An optional ``next_contact_at`` schedules the follow-up in the same
-    request."""
+    request (spec 09.2)."""
     deal = await deal_service.get_deal_scoped(db, deal_id, user, for_edit=True)
     deal = await deal_service.move_stage(db, deal, body.stage_id, user)
     if body.next_contact_at is not None and deal.status == DealStatus.OPEN:
@@ -534,7 +534,7 @@ async def claim_deal(deal_id: uuid.UUID, user: CurrentUser, db: DbSession) -> De
 async def quick_log_deal(
     deal_id: uuid.UUID, body: QuickLogIn, user: CurrentUser, db: DbSession
 ) -> QuickLogOut:
-    """One-click contact-outcome registration (the spec infra):
+    """One-click contact-outcome registration (spec 12.3 infra):
 
     - creates the typed activity (bumps ``last_activity_at`` via DB trigger)
     - stores ``next_contact_at`` when sent
@@ -542,7 +542,7 @@ async def quick_log_deal(
       "Visit" task due on that date
 
     Returns the updated deal + the deal's total ``attempt_no_answer`` count
-    so the frontend can pre-select the cadence interval."""
+    so the frontend can pre-select the cadence interval (spec 09.3)."""
     deal = await deal_service.get_deal_scoped(db, deal_id, user, for_edit=True)
     deal, attempts = await deal_service.quick_log(
         db,
@@ -564,7 +564,7 @@ async def quick_log_deal(
 async def reopen_deal_in_cycle(
     deal_id: uuid.UUID, user: CurrentUser, db: DbSession
 ) -> DealOut:
-    """Win-back: create a NEW deal in the ACTIVE cycle for the
+    """Win-back (spec 10.4): create a NEW deal in the ACTIVE cycle for the
     same contact (stage 1, owner = caller), cross-linked with the old lost
     deal via activities. The old deal stays lost, untouched. Scope: admin any
     lost deal; consultant only their own."""

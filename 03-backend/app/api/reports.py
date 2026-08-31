@@ -150,7 +150,7 @@ async def cac(
     cycle_id: uuid.UUID | None = None,
     group_by: Literal["source", "campaign", "unit", "month"] = Query(default="source"),
 ) -> CacReport:
-    """Cost per enrollment: registered spend x leads x won deals
+    """Cost per enrollment (spec 10.2): registered spend x leads x won deals
     per source/campaign/unit/month. Period comes from ``from``/``to`` OR from
     a ``cycle_id`` (the cycle's deals + its months of spend). Cost fields are
     null when there is no matching spend — never fabricated."""
@@ -175,7 +175,7 @@ async def conversations(
     date_to: datetime | None = Query(default=None, alias="to"),
     cycle_id: uuid.UUID | None = None,
 ) -> ConversationsReport:
-    """Per-consultant conversation quality: attempts, real
+    """Per-consultant conversation quality (spec 12.3): attempts, real
     conversations, contact->conversation rate, scheduled visits, registered
     objections and % of objection deals later won."""
     f, t = _period(date_from, date_to)

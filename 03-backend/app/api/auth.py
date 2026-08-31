@@ -1,6 +1,6 @@
 """Auth endpoints: login, refresh (rotating cookie), logout, me, password.
 
-Two login flows:
+Two login flows (ADR: 17-wave3-notes.md):
 - ``client=web`` (default): 15-min access token + rotating httpOnly refresh
   cookie (SPA flow, unchanged).
 - ``client=extension``: single longer-lived access token (12h default, no

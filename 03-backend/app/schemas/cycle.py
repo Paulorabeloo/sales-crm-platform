@@ -1,4 +1,4 @@
-"""Sales cycle schemas."""
+"""Sales cycle schemas (spec 10.1)."""
 
 import uuid
 from datetime import date, datetime

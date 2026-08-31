@@ -5,7 +5,7 @@
  *   the browser closes; not accessible from web pages).
  * - Config (API/CRM base URLs) lives in chrome.storage.local.
  * - Auth flow: POST /auth/login?client=extension issues a 12h access token
- *   with no refresh cookie (see the backend auth ADR).
+ *   with no refresh cookie (see backend ADR in 17-wave3-notes.md).
  */
 
 import type { AuthState, BgRequest, BgResponse, ExtensionConfig } from "./lib/messages";

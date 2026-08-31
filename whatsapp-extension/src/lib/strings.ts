@@ -105,8 +105,8 @@ export const STRINGS = {
   templatesTitle: "Modelos de mensagem",
   templatesEmpty: "Nenhum modelo cadastrado.",
 
-  // Custom inbox stub
-  inboxNotConfigured: "Adaptador da caixa de entrada personalizada ainda não configurado. Veja o README da extensão.",
+  // RD Conversas stub
+  rdNotConfigured: "Adaptador do RD Conversas ainda não configurado. Veja o README da extensão.",
 } as const;
 
 /** pt-BR labels for activity types shown in the timeline. */

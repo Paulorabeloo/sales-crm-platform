@@ -52,7 +52,7 @@ async def update_lost_reason(
     if body.is_active is not None:
         reason.is_active = body.is_active
     if body.is_recoverable is not None:
-        # Win-back flag: losses with this reason enter the
+        # Win-back flag (spec 10.4): losses with this reason enter the
         # rescue list of previous cycles.
         reason.is_recoverable = body.is_recoverable
     await db.flush()

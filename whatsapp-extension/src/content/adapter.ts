@@ -1,6 +1,6 @@
 /**
  * Surface adapter contract. The side panel is surface-agnostic: each
- * messaging surface (WhatsApp Web, a custom inbox) implements this interface
+ * messaging surface (WhatsApp Web, RD Conversas) implements this interface
  * and only extracts {name, phone} from the open conversation. Retiring a
  * surface later means deleting one adapter file, nothing else.
  */

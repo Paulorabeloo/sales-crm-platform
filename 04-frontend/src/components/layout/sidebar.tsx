@@ -69,7 +69,7 @@ export function Brand() {
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { isAdmin } = useAuth();
-  // Rescue badge: recoverable lost leads from previous cycles.
+  // Rescue badge (spec 10.4): recoverable lost leads from previous cycles.
   const recoverable = useRecoverableDeals();
   const rescueCount = recoverable.data?.total ?? 0;
 

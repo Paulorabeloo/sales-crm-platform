@@ -112,7 +112,7 @@ async def process_lead(
         await db.commit()
         return None, detail
 
-    # Webhook leads land in the ACTIVE cycle. A missing active
+    # Webhook leads land in the ACTIVE cycle (spec 10.1). A missing active
     # cycle is a configuration gap on our side, never a reason to refuse a
     # lead: ``resolve_capture_cycle`` falls back to the most recent cycle (or
     # creates the "Sem ciclo" one) and the gap is flagged in the log and on the
@@ -171,7 +171,7 @@ async def process_lead(
         },
     )
 
-    # Auto cadence: a "Make first contact" task due today, born
+    # Auto cadence (spec 09.3): a "Make first contact" task due today, born
     # unassigned (NULL) — claiming the deal assigns it to the new owner.
     if await get_auto_first_contact_task(db):
         task = Task(

@@ -22,7 +22,7 @@ function todayISO(): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
-test.describe("Resgate: reabrir lead perdido no ciclo ativo", () => {
+test.describe("Resgate (spec 10.4): reabrir lead perdido no ciclo ativo", () => {
   let page: Page;
   let api: ApiClient;
   let oldDealId: string;

@@ -1,21 +1,21 @@
-"""phase : stage gates, follow-up system, quick-log infra, message templates.
+"""Wave 1: stage gates, follow-up system, quick-log infra, message templates.
 
 Additive migration on top of 0001 (never edit history that already ran):
 
 - ``stages.required_fields`` (JSONB array of field keys, default ``[]``) —
-  per-stage entry gate.
-- ``stages.playbook`` (nullable text) — per-stage sales guide.
+  per-stage entry gate (spec 08).
+- ``stages.playbook`` (nullable text) — per-stage sales guide (spec 12.1).
 - ``deals.next_contact_at`` (nullable timestamptz) + partial index on open
-  deals — the "next step" rule.
-- ``activity_type`` gains the 4 quick-log values.
+  deals — the "next step" rule (spec 09.2).
+- ``activity_type`` gains the 4 quick-log values (spec 12.3).
 - ``tasks.assigned_to`` / ``tasks.created_by`` become nullable — the webhook
   auto-creates a "Make first contact" task with no assignee and no creator
   (NULL = system); claiming the deal assigns its open unassigned tasks.
-- ``message_templates`` table — WhatsApp template catalog.
+- ``message_templates`` table (spec 09.4) — WhatsApp template catalog.
 
-The new default 6-stage funnel is a SEED change, not schema: seeds
+The new default 6-stage funnel (spec 11) is a SEED change, not schema: seeds
 were updated and the dev database is recreated (drop/create + alembic + seeds),
-which is acceptable in development.
+which is acceptable in dev per the wave-1 plan.
 
 Revision ID: 0002_followup_and_stage_gates
 Revises: 0001_initial_schema

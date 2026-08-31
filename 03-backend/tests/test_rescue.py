@@ -1,4 +1,4 @@
-"""Win-back: recoverable lost reasons, the rescue list and
+"""Win-back (spec 10.4): recoverable lost reasons, the rescue list and
 reopen-in-cycle (new linked deal in the active cycle)."""
 
 from httpx import AsyncClient

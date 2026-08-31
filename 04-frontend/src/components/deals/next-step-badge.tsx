@@ -15,7 +15,7 @@ interface NextStepBadgeProps {
 }
 
 /**
- * Follow-up state of an open deal: gray-attention badge when
+ * Follow-up state of an open deal (spec 09.2): gray-attention badge when
  * there is no FUTURE next contact, date badge when one is scheduled.
  */
 export function NextStepBadge({

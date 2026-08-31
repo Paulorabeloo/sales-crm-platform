@@ -1,4 +1,4 @@
-"""Required-fields stage gate: catalog endpoint, admin config,
+"""Required-fields stage gate (spec 08): catalog endpoint, admin config,
 422 on entering a stage with missing fields, won-stage gate, playbook field."""
 
 from httpx import AsyncClient

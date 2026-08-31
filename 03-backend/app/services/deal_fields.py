@@ -1,4 +1,4 @@
-"""Deal field catalog + required-fields gate.
+"""Deal field catalog + required-fields gate (spec 08).
 
 The catalog is the single source of truth for the keys an admin may mark as
 required on a stage (``stages.required_fields``). It covers:

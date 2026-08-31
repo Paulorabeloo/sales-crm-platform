@@ -1,4 +1,5 @@
-"""Follow-up system + quick-log infra + new funnel: next_contact_at handling, My Day aggregate, cadence settings,
+"""Follow-up system (spec 09) + quick-log infra (spec 12.3) + new funnel
+(spec 11): next_contact_at handling, My Day aggregate, cadence settings,
 webhook auto-task + claim assignment, message templates, summary metric."""
 
 from datetime import UTC, datetime, timedelta
@@ -73,7 +74,7 @@ async def test_stage_move_and_first_contact_accept_next_contact(
     assert response.json()["next_contact_at"].startswith(later[:10])
 
 
-# --- Quick log ----------------------------------------------------
+# --- Quick log (spec 12.3) ----------------------------------------------------
 
 
 async def test_quick_log_kinds_create_typed_activities(
@@ -135,7 +136,7 @@ async def test_quick_log_stores_next_contact_at(
 async def test_quick_log_registers_first_contact_and_leaves_respond_now(
     client: AsyncClient, admin_token: str, contact_id: str
 ):
-    """QA-final fix: the first quick log on an untouched lead IS
+    """QA-final fix (spec 09.1): the first quick log on an untouched lead IS
     the first contact — it sets first_whatsapp_contact_at (write-once) and the
     lead leaves My Day's respond_now section."""
     admin_me = (await client.get("/api/v1/auth/me", headers=auth(admin_token))).json()
@@ -213,7 +214,7 @@ async def test_quick_log_visit_requires_date_and_creates_task(
     assert visit_tasks[0]["due_date"] == visit_at.date().isoformat()
 
 
-# --- Webhook cadence + claim --------------------------------------
+# --- Webhook cadence + claim (spec 09.3) --------------------------------------
 
 
 async def create_source(client: AsyncClient, admin_token: str) -> dict:
@@ -291,7 +292,7 @@ async def test_auto_first_contact_task_can_be_disabled(
     assert tasks == []
 
 
-# --- Cadence settings ---------------------------------------------
+# --- Cadence settings (spec 09.3) ---------------------------------------------
 
 
 async def test_settings_expose_and_update_cadence(
@@ -324,7 +325,7 @@ async def test_settings_expose_and_update_cadence(
     assert response.status_code == 403
 
 
-# --- Message templates --------------------------------------------
+# --- Message templates (spec 09.4) --------------------------------------------
 
 
 async def test_message_templates_seeded_and_readable(
@@ -396,7 +397,7 @@ async def test_message_templates_crud_is_admin_only(
     assert response.status_code == 204
 
 
-# --- My Day -------------------------------------------------------
+# --- My Day (spec 09.1) -------------------------------------------------------
 
 
 async def test_my_day_sections_and_scope(
@@ -519,7 +520,7 @@ async def test_my_day_sections_and_scope(
     assert "Foreign deal" not in {d["title"] for d in response.json()["respond_now"]}
 
 
-# --- Reports: % without next step ---------------------------------
+# --- Reports: % without next step (spec 09.2) ---------------------------------
 
 
 async def test_summary_report_includes_no_next_step_breakdown(

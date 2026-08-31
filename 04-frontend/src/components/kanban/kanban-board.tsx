@@ -85,13 +85,13 @@ interface KanbanBoardProps {
 export function KanbanBoard({ stages, columns }: KanbanBoardProps) {
   const moveDeal = useMoveDeal();
   const { data: settings } = useSettings();
-  // Stage gate: 422 opens the missing-fields dialog, then retries.
+  // Stage gate (spec 08): 422 opens the missing-fields dialog, then retries.
   const [gate, setGate] = React.useState<{
     dealId: string;
     stageId: string;
     missing: string[];
   } | null>(null);
-  // Follow-up prompt after a successful move.
+  // Follow-up prompt after a successful move (spec 09.2).
   const [promptDealId, setPromptDealId] = React.useState<string | null>(null);
   const setNextContact = useSetNextContactFor();
   const sensors = useSensors(

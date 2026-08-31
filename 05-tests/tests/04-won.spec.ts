@@ -48,7 +48,7 @@ test.describe("Marcar vendida (gate do won + regressão B1 do prefill)", () => {
     // Confirma SEM editar (cenário exato do B1).
     await dialog.getByRole("button", { name: "Confirmar venda" }).click();
 
-    // Gate do won: a etapa Concluído exige contrato assinado + RA.
+    // Gate do won (spec 08): a etapa Concluído exige contrato assinado + RA.
     const gate = page.getByRole("dialog").filter({
       has: page.getByRole("heading", { name: "Faltam campos para concluir" }),
     });

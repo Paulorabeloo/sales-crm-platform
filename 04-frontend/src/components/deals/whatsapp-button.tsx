@@ -43,7 +43,7 @@ interface WhatsAppButtonProps {
 
 /**
  * Opens wa.me for the deal contact, with a dropdown of active message
- * templates rendered client-side. "Sem mensagem" keeps the old
+ * templates rendered client-side (spec 09.4). "Sem mensagem" keeps the old
  * behavior; unregistered first contact still offers the write-once metric,
  * now chained with the next-contact prompt.
  */

@@ -1,4 +1,4 @@
-"""Post re-review hardening: token cut-off + indexes for the phase -3 queries.
+"""Post re-review hardening: token cut-off + indexes for the wave 1-3 queries.
 
 Additive migration on top of 0003 (no table is recreated, no data rewritten):
 
@@ -38,7 +38,7 @@ UPGRADE_STATEMENTS: list[str] = [
         ADD COLUMN password_changed_at timestamptz NOT NULL DEFAULT now()
     """,
     "UPDATE users SET password_changed_at = created_at",
-    # --- Minor 6: indexes for the phase -3 hot queries -----------------------
+    # --- Minor 6: indexes for the wave 1-3 hot queries -----------------------
     """
     CREATE INDEX ix_deals_awaiting_first_contact ON deals (owner_id, created_at)
         WHERE first_whatsapp_contact_at IS NULL AND deleted_at IS NULL
