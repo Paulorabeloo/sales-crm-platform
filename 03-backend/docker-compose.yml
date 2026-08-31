@@ -1,0 +1,22 @@
+# Development infrastructure: PostgreSQL 16 only.
+# The API runs natively (uvicorn) for faster DX — see README.md.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sales-crm-postgres
+    environment:
+      POSTGRES_USER: crm
+      POSTGRES_PASSWORD: crm
+      POSTGRES_DB: sales_crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - sales_crm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm -d sales_crm"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  sales_crm_pgdata:

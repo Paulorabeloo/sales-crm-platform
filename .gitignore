@@ -1,0 +1,46 @@
+# --- Dependencies -------------------------------------------------------------
+node_modules/
+.venv/
+venv/
+
+# --- Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- JavaScript / Next.js -----------------------------------------------------
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+.vercel/
+
+# --- Playwright ---------------------------------------------------------------
+test-results/
+playwright-report/
+.auth/
+
+# --- Environment: real files stay out, the documented templates stay in -------
+.env
+.env.*
+!.env.example
+
+# --- Logs ---------------------------------------------------------------------
+*.log
+run*.log
+uvicorn*.log
+next*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS / editor --------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.pem
+.idea/
+.vscode/
