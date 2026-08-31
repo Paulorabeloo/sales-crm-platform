@@ -139,6 +139,35 @@ class ObjectionOut(ORMModel):
     updated_at: datetime
 
 
+# --- Sources (lead origin catalog, feedback item 5) ---------------------------
+
+class SourceCreate(BaseModel):
+    """``key`` is optional: when omitted it is derived from ``label``. Either
+    way the router normalizes it (trim + lowercase + accents + separators)."""
+
+    key: str | None = Field(default=None, min_length=1, max_length=120)
+    label: str = Field(min_length=1, max_length=120)
+    sort_order: int = 0
+    is_active: bool = True
+
+
+class SourceUpdate(BaseModel):
+    key: str | None = Field(default=None, min_length=1, max_length=120)
+    label: str | None = Field(default=None, min_length=1, max_length=120)
+    sort_order: int | None = None
+    is_active: bool | None = None
+
+
+class SourceOut(ORMModel):
+    id: uuid.UUID
+    key: str  # the value actually stored in deals.source / campaign_spend.source
+    label: str
+    is_active: bool
+    sort_order: int
+    created_at: datetime
+    updated_at: datetime
+
+
 # --- Lead sources -------------------------------------------------------------
 
 class LeadSourceCreate(BaseModel):

@@ -19,6 +19,7 @@ from app.schemas.spend import (
     CampaignSpendOut,
     CampaignSpendUpdate,
 )
+from app.services.sources import resolve_source
 
 router = APIRouter(prefix="/campaign-spend", tags=["campaign-spend"])
 
@@ -49,10 +50,18 @@ async def create_campaign_spend(
         raise ValidationFailedError(
             "unit_id must reference an existing unit", "invalid_unit"
         )
+    # Normalize BEFORE the duplicate check (feedback item 5): "Meta Ads" and
+    # "meta" are the same row, and the CAC report must see one spend line per
+    # channel, not one per spelling.
+    source = await resolve_source(db, body.source)
+    if source is None:
+        raise ValidationFailedError(
+            "source must contain at least one letter or digit", "invalid_source_key"
+        )
     duplicate = await db.scalar(
         select(CampaignSpend).where(
             CampaignSpend.month == body.month,
-            CampaignSpend.source == body.source,
+            CampaignSpend.source == source,
             CampaignSpend.campaign.is_not_distinct_from(body.campaign),
             CampaignSpend.unit_id.is_not_distinct_from(body.unit_id),
         )
@@ -65,7 +74,7 @@ async def create_campaign_spend(
         )
     spend = CampaignSpend(
         month=body.month,
-        source=body.source,
+        source=source,
         campaign=body.campaign,
         unit_id=body.unit_id,
         amount=body.amount,

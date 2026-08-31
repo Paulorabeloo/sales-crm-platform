@@ -19,7 +19,7 @@ Additive migration on top of 0003 (no table is recreated, no data rewritten):
   index cover the real-world case.
 
 Revision ID: 0004_post_review_hardening
-Revises: 0003_cycles_spend_goals_objections
+Revises: 0003_cycles_spend_goals
 Create Date: 2026-08-31
 """
 from collections.abc import Sequence
@@ -27,7 +27,7 @@ from collections.abc import Sequence
 from alembic import op
 
 revision: str = "0004_post_review_hardening"
-down_revision: str | None = "0003_cycles_spend_goals_objections"
+down_revision: str | None = "0003_cycles_spend_goals"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

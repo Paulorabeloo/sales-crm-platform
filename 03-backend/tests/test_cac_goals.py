@@ -103,7 +103,8 @@ async def test_campaign_spend_crud_admin_only(
 async def test_cac_report_never_fabricates_costs(
     client: AsyncClient, admin_token: str, contact_id: str
 ):
-    # One won deal from source "meta", no spend registered at all.
+    # One won deal from source "meta", no spend registered at all. The catalog
+    # normalizes "meta" to the key "meta_ads" on the way in (feedback item 5).
     deal = await create_deal(client, admin_token, contact_id, source="meta")
     await win_deal(client, admin_token, deal["id"])
 
@@ -112,7 +113,7 @@ async def test_cac_report_never_fabricates_costs(
     )
     assert response.status_code == 200, response.text
     body = response.json()
-    row = next(r for r in body["rows"] if r["group_key"] == "meta")
+    row = next(r for r in body["rows"] if r["group_key"] == "meta_ads")
     assert row["leads_count"] == 1
     assert row["enrollments"] == 1
     assert row["spend"] is None
@@ -136,7 +137,8 @@ async def test_cac_report_with_spend_and_summary_kpi(
         deadline_on=LAST_DAY_THIS_MONTH.isoformat(),
     )
 
-    # 2 leads from "meta", 1 won; R$ 1000 spend on "meta" this month.
+    # 2 leads from "meta", 1 won; R$ 1000 spend on "meta" this month (both
+    # normalized to the catalog key "meta_ads").
     deal1 = await create_deal(client, admin_token, contact_id, source="meta")
     await win_deal(client, admin_token, deal1["id"])
     contact2 = await make_contact(client, admin_token, "+5563999870002", "Lead 2")
@@ -155,7 +157,7 @@ async def test_cac_report_with_spend_and_summary_kpi(
             headers=auth(admin_token),
         )
     ).json()
-    row = next(r for r in body["rows"] if r["group_key"] == "meta")
+    row = next(r for r in body["rows"] if r["group_key"] == "meta_ads")
     assert row["spend"] == "1000.00"
     assert row["leads_count"] == 2
     assert row["enrollments"] == 1
@@ -172,7 +174,7 @@ async def test_cac_report_with_spend_and_summary_kpi(
             headers=auth(admin_token),
         )
     ).json()
-    row = next(r for r in body["rows"] if r["group_key"] == "meta")
+    row = next(r for r in body["rows"] if r["group_key"] == "meta_ads")
     assert row["enrollments"] == 1
     assert row["cost_per_enrollment"] == "1000.00"
 
@@ -207,7 +209,7 @@ async def test_cac_prorates_budget_of_a_partially_covered_month(
             headers=auth(admin_token),
         )
     ).json()
-    row = next(r for r in half["rows"] if r["group_key"] == "google")
+    row = next(r for r in half["rows"] if r["group_key"] == "google_ads")
     assert row["spend"] == "1500.00"
     assert half["total_spend"] == "1500.00"
     # No lead or enrollment in that window: costs stay None, never fabricated.
@@ -505,7 +507,7 @@ async def test_cac_cycle_window_covers_deals_created_before_the_cycle_start(
     )
     assert response.status_code == 200, response.text
     report = response.json()
-    row = next(r for r in report["rows"] if r["group_key"] == "google")
+    row = next(r for r in report["rows"] if r["group_key"] == "google_ads")
 
     # The lead is counted, so the budget of its month must be counted with it.
     # The window starts at the oldest deal (day 15), so that month contributes

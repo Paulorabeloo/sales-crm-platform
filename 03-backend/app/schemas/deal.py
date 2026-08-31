@@ -29,11 +29,20 @@ class DealCreate(BaseModel):
     enrollment_data: EnrollmentData | None = None
 
 
+EnrollmentDataMode = Literal["merge", "replace"]
+
+
 class DealUpdate(BaseModel):
     """General field updates. Stage/status transitions use dedicated endpoints.
 
     ``next_contact_at`` and ``objection_id`` support explicit clearing: send
-    ``null`` to remove them (the router checks ``model_fields_set``)."""
+    ``null`` to remove them (the router checks ``model_fields_set``).
+
+    ``enrollment_data`` is SHALLOW-MERGED by default (feedback item 4): only
+    the keys present in the payload change, and a key sent as ``null`` is
+    cleared. Send ``enrollment_data_mode="replace"`` (body field or query
+    param) for the old destructive behaviour, where the stored object is
+    replaced by exactly what was sent."""
 
     title: str | None = Field(default=None, min_length=1, max_length=200)
     unit_id: uuid.UUID | None = None
@@ -44,6 +53,7 @@ class DealUpdate(BaseModel):
     source: str | None = Field(default=None, max_length=120)
     campaign: str | None = Field(default=None, max_length=120)
     enrollment_data: EnrollmentData | None = None
+    enrollment_data_mode: EnrollmentDataMode | None = None  # default: merge
     next_contact_at: datetime | None = None
     objection_id: uuid.UUID | None = None  # catalog objection (spec 12.2)
 
@@ -167,6 +177,13 @@ class DealCard(ORMModel):
 
 
 class KanbanStage(BaseModel):
+    """One kanban column.
+
+    ``count`` and ``sum_value`` are the REAL totals of the column (they ignore
+    the card cap), while ``deals`` holds at most ``cards_per_stage`` cards
+    ordered by working priority. ``has_more``/``remaining`` drive the
+    "ver mais" affordance (feedback item 3)."""
+
     stage_id: uuid.UUID
     name: str
     sort_order: int
@@ -174,12 +191,27 @@ class KanbanStage(BaseModel):
     count: int
     sum_value: Decimal
     deals: list[DealCard]
+    has_more: bool = False
+    remaining: int = 0
+
+
+class KanbanQueue(BaseModel):
+    """The unassigned-leads queue (``owner_id IS NULL`` and status ``open``),
+    same capping contract as a column."""
+
+    count: int
+    sum_value: Decimal
+    deals: list[DealCard]
+    has_more: bool = False
+    remaining: int = 0
 
 
 class KanbanResponse(BaseModel):
     pipeline_id: uuid.UUID
     cooling_days: int
+    cards_per_stage: int
     stages: list[KanbanStage]
+    unassigned: KanbanQueue
 
 
 class RecoverableDealRow(BaseModel):

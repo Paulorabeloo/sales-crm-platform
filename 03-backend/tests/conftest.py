@@ -47,7 +47,7 @@ _TRUNCATE_SQL = """
 TRUNCATE webhook_deliveries, lead_sources, tasks, activities, deal_stage_history,
          deals, contacts, lost_reasons, stages, pipelines, refresh_tokens,
          users, units, message_templates, app_settings, goals, campaign_spend,
-         objections, cycles CASCADE
+         objections, sources, cycles CASCADE
 """
 
 

@@ -44,7 +44,9 @@ async def test_webhook_happy_path(
     deal_body = deal.json()
     assert deal_body["owner_id"] is None
     assert deal_body["status"] == "open"
-    assert deal_body["source"] == "LP Test (Apps Script)"
+    # The lead source NAME is normalized to a catalog key (feedback item 5);
+    # an unknown origin is registered, never refused.
+    assert deal_body["source"] == "lp_test_apps_script"
     assert deal_body["campaign"] == "meta-agosto"
     assert deal_body["enrollment_data"]["interest_course"] == (
         "Análise e Desenvolvimento de Sistemas"

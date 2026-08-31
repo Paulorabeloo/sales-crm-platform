@@ -30,10 +30,9 @@ async def test_default_stages_carry_required_fields_and_playbook(
     stages = await get_stages(client, admin_token)
     assert stages["Novo lead"]["required_fields"] == []
     assert stages["Tentando contato"]["required_fields"] == ["first_whatsapp_contact_at"]
-    assert stages["Concluído"]["required_fields"] == [
-        "enrollment.contract_signed",
-        "enrollment.ra_number",
-    ]
+    # The enrollment number is issued by the academic system after the sale,
+    # so it is not part of the closing gate.
+    assert stages["Concluído"]["required_fields"] == ["enrollment.contract_signed"]
     assert stages["Conversa qualificada"]["playbook"]  # seeded, non-empty
 
 
@@ -149,16 +148,13 @@ async def test_won_gate_requires_contract_true_and_ra(
 ):
     deal = await create_deal(client, admin_token, contact_id)
 
-    # Nothing filled -> both fields missing.
+    # Nothing filled -> the contract is missing.
     response = await client.post(
         f"/api/v1/deals/{deal['id']}/won", headers=auth(admin_token), json={}
     )
     assert response.status_code == 422
     assert response.json()["code"] == "stage_requirements_missing"
-    assert response.json()["missing_fields"] == [
-        "enrollment.contract_signed",
-        "enrollment.ra_number",
-    ]
+    assert response.json()["missing_fields"] == ["enrollment.contract_signed"]
 
     # contract_signed=false does NOT satisfy a required boolean.
     response = await client.patch(

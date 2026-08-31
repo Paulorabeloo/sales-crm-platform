@@ -83,3 +83,27 @@ class EnrollmentData(BaseModel):
     def dump_json_dict(self) -> dict:
         """JSON-serializable dict (Decimal/date/datetime as strings), no Nones."""
         return self.model_dump(mode="json", exclude_none=True)
+
+    def merge_into(self, current: dict | None) -> dict:
+        """Shallow-merge this patch onto the stored JSONB (feedback item 4).
+
+        Only the keys PRESENT in the request payload are touched, which is what
+        makes a partial ``PATCH /deals/{id}`` safe for any client (extension,
+        integration, script) instead of wiping every field it did not send:
+
+        - key sent with a value  -> written;
+        - key sent as ``null``   -> removed (explicit clear);
+        - key not sent           -> kept untouched.
+
+        ``model_fields_set`` is what distinguishes "sent as null" from "not
+        sent", so callers must build the model from the raw request body.
+        """
+        merged = dict(current or {})
+        dumped = self.model_dump(mode="json")
+        for key in self.model_fields_set:
+            value = dumped[key]
+            if value is None:
+                merged.pop(key, None)
+            else:
+                merged[key] = value
+        return merged

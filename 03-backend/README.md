@@ -9,7 +9,7 @@ an admin (no open signup) with two roles: **ADMIN** and **CONSULTANT**.
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 (async, asyncpg) · Alembic ·
 Pydantic v2 · PostgreSQL 16 · argon2id + JWT (rotating refresh cookie).
 
-## What it does today
+## What it does today (waves 1 to 3)
 
 - **6-stage funnel with gates.** Each stage declares `required_fields`
   (deal columns, `contact.*` or `enrollment.*`); entering it without them
@@ -156,6 +156,14 @@ reset invalidates the target's live access tokens.
   admin-only; `include_inactive` is ignored for non-admins)
 - `GET/POST /message-templates`, `PATCH/DELETE /message-templates/{id}`:
   WhatsApp message templates with `{{placeholders}}` (writes admin-only)
+- `GET/POST /sources`, `PATCH/DELETE /sources/{id}`: lead-origin catalog
+  (writes admin-only; `include_inactive` is ignored for non-admins). Its
+  `key` is the normalized value stored in `deals.source` and
+  `campaign_spend.source`; every write normalizes free text onto it
+  ("Meta Ads", "meta", "Facebook" -> `meta_ads`) so the CAC report cannot
+  split one channel across spellings. An unknown source is accepted and
+  auto-registered as inactive: a lead is never refused over its origin.
+  Deleting a referenced key is 409 `source_in_use` (deactivate instead).
 
 ### Contacts
 `GET /contacts?q=` (name/phone search, paginated) · `POST /contacts` (409 with
@@ -169,8 +177,16 @@ is admin-only and blocked while open deals exist.
 - `GET /deals`: paginated list; filters: `pipeline_id`, `stage_id`,
   `owner_id`, `unassigned`, `status`, `unit_id`, `cooling`; sortable
 - `GET /deals/kanban`: columns with `count` + `sum_value` per stage, compact
-  cards with contact info and a computed `is_cooling` flag
-- `POST /deals` · `GET/PATCH/DELETE /deals/{id}`
+  cards with contact info and a computed `is_cooling` flag. `cards_per_stage`
+  (default 25, max 100) caps the cards per column; `count`/`sum_value` stay
+  the real column totals and `has_more`/`remaining` report what was left out.
+  Cards are ranked by working priority (open and never contacted, oldest
+  first; then open and going cold, oldest activity first; then the rest by
+  most recent activity). The unassigned queue comes back capped the same way
+  in `unassigned`; `split_unassigned=true` removes it from the columns.
+- `POST /deals` · `GET/PATCH/DELETE /deals/{id}` (`PATCH` shallow-merges
+  `enrollment_data`: absent keys are preserved, a key sent as `null` is
+  cleared; `enrollment_data_mode=replace` restores the full replace)
 - `PATCH /deals/{id}/stage`: kanban move (history via DB trigger; moving into
   the won-stage marks the deal won)
 - `POST /deals/{id}/won`: sets `won_at` + moves to the won-stage

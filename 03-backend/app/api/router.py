@@ -20,6 +20,7 @@ from app.api import (
     units,
     reports,
     settings,
+    sources,
     tasks,
     users,
     webhooks,
@@ -38,6 +39,7 @@ api_router.include_router(cycles.router)
 api_router.include_router(campaign_spend.router)
 api_router.include_router(goals.router)
 api_router.include_router(objections.router)
+api_router.include_router(sources.router)
 api_router.include_router(contacts.router)
 api_router.include_router(deals.router)
 api_router.include_router(my_day.router)

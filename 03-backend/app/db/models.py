@@ -343,6 +343,25 @@ class Objection(PKMixin, TimestampMixin, Base):
     template: Mapped[Optional["MessageTemplate"]] = relationship()
 
 
+class Source(PKMixin, TimestampMixin, Base):
+    """Lead-origin catalog (feedback item 5) — the vocabulary shared by
+    ``deals.source`` and ``campaign_spend.source``.
+
+    Both columns stay TEXT (no FK, no destructive change): the catalog is the
+    normalization target, not a constraint. ``key`` is the normalized value
+    actually stored on deals and spend rows; ``label`` is what the frontend
+    shows. Unknown sources arriving from the webhook are auto-registered with
+    ``is_active = false`` so a lead is never refused (see
+    ``app/services/sources.py``)."""
+
+    __tablename__ = "sources"
+
+    key: Mapped[str] = mapped_column(Text, unique=True)
+    label: Mapped[str] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(server_default=text("true"))
+    sort_order: Mapped[int] = mapped_column(server_default=text("0"))
+
+
 class Contact(PKMixin, TimestampMixin, Base):
     """Person (LGPD: soft-delete). ``phone_whatsapp`` is E.164-normalized by
     the application and is the dedupe key (partial unique on active rows)."""

@@ -34,6 +34,7 @@ from app.services.contacts import get_or_create_by_phone
 from app.services.cycles import resolve_capture_cycle
 from app.services.deals import get_default_pipeline, get_first_stage
 from app.services.settings import get_auto_first_contact_task
+from app.services.sources import resolve_source
 
 FIRST_CONTACT_TASK_TITLE = "Make first contact"
 
@@ -150,7 +151,10 @@ async def process_lead(
         unit_id=unit_id,
         contact_id=contact.id,
         cycle_id=cycle.id,
-        source=source.name,
+        # Normalized to a catalog key (feedback item 5). A lead source whose
+        # name is not in the catalog is ACCEPTED and auto-registered as an
+        # inactive source: an unknown origin is never a reason to drop a lead.
+        source=await resolve_source(db, source.name),
         campaign=payload.campaign,
         enrollment_data=enrollment_data,
     )

@@ -83,7 +83,7 @@ async def test_move_stage_records_history_and_event(
 
 
 async def fill_won_requirements(client: AsyncClient, token: str, deal_id: str) -> None:
-    """Fill the won-stage's default required fields (contract + RA)."""
+    """Fill the won-stage's default required fields."""
     response = await client.patch(
         f"/api/v1/deals/{deal_id}",
         headers=auth(token),

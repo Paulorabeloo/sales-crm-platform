@@ -13,6 +13,8 @@ Creates (only when missing — safe to re-run):
 - app settings: cooling_days=3, auto_first_contact_task=true,
   followup_cadence=[1, 3, 7] (spec 09.3)
 - 3 generic WhatsApp message templates (spec 09.4)
+- 8 catalog sources (feedback item 5): meta_ads, google_ads, tiktok_ads,
+  indicacao, site, whatsapp, presencial, outro
 
 Funnel note (spec 11): stages are verifiable lead MILESTONES, not seller
 activities. Existing dev databases seeded with the old 4-stage funnel should
@@ -35,12 +37,14 @@ from app.db.models import (
     MessageTemplate,
     Objection,
     Pipeline,
+    Source,
     Stage,
     Unit,
     User,
     UserRole,
 )
 from app.db.session import get_session_factory
+from app.services.sources import SOURCE_SEEDS
 
 logger = logging.getLogger("app.seeds")
 
@@ -252,6 +256,13 @@ async def run_seeds() -> None:
             if name not in existing_objections:
                 session.add(Objection(name=name, rebuttal=rebuttal, sort_order=order))
                 logger.info("Created objection %r", name)
+
+        # --- Source catalog (feedback item 5) ----------------------------------
+        existing_sources = (await session.scalars(select(Source.key))).all()
+        for key, label, order in SOURCE_SEEDS:
+            if key not in existing_sources:
+                session.add(Source(key=key, label=label, sort_order=order))
+                logger.info("Created source %r", key)
 
         # --- Placeholder units ------------------------------------------------
         existing_units = (await session.scalars(select(Unit.name))).all()

@@ -20,15 +20,20 @@ Additive migration on top of 0002 (spec 10 blocks 1-4 + spec 12 block 2):
 - ``activity_type`` gains ``cycle_changed`` (rollover audit trail) and
   ``reopened_in_cycle`` (win-back link on the old lost deal).
 
-Revision ID: 0003_cycles_spend_goals_objections
+Revision ID: 0003_cycles_spend_goals
 Revises: 0002_followup_and_stage_gates
 Create Date: 2026-08-28
+
+NOTE: the revision id must fit ``alembic_version.version_num`` (varchar(32),
+created by Alembic itself). The original id was 34 characters long, which made
+``alembic upgrade head`` fail on every freshly created database (including the
+pytest one). Keep every future revision id under 32 characters.
 """
 from collections.abc import Sequence
 
 from alembic import op
 
-revision: str = "0003_cycles_spend_goals_objections"
+revision: str = "0003_cycles_spend_goals"
 down_revision: str | None = "0002_followup_and_stage_gates"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

@@ -10,7 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, Query, status
-from sqlalchemy import ColumnElement, Select, func, select, text
+from sqlalchemy import ColumnElement, Select, and_, case, func, not_, select, text
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import AdminUser, CurrentUser, DbSession
@@ -34,6 +34,8 @@ from app.schemas.deal import (
     DealMoveStage,
     DealOut,
     DealUpdate,
+    EnrollmentDataMode,
+    KanbanQueue,
     KanbanResponse,
     KanbanStage,
     QuickLogIn,
@@ -45,6 +47,7 @@ from app.services import deals as deal_service
 from app.services.activities import log_activity
 from app.services.cycles import require_active_cycle, resolve_cycle_for_new_deal
 from app.services.settings import get_cooling_days
+from app.services.sources import resolve_source
 
 router = APIRouter(prefix="/deals", tags=["deals"])
 
@@ -153,6 +156,45 @@ async def list_deals(
 
 # --- Kanban view --------------------------------------------------------------
 
+CARDS_PER_STAGE_DEFAULT = 25
+CARDS_PER_STAGE_MAX = 100
+
+
+def _kanban_priority_order(cutoff: datetime) -> list[ColumnElement[Any]]:
+    """Working-priority ordering of the cards inside a column (feedback item 3).
+
+    A column shows at most ``cards_per_stage`` cards, so WHICH cards make the
+    cut matters more than chronology. The buckets, in order:
+
+    1. **open and never contacted** (``first_whatsapp_contact_at IS NULL``) —
+       oldest ``created_at`` first: a lead nobody answered is the most urgent
+       card on the board, and the longer it waits the worse it gets;
+    2. **open and going cold** (``last_activity_at`` older than the
+       ``cooling_days`` cutoff) — oldest activity first;
+    3. **everything else** — most recent activity first (what is being worked
+       today stays on top).
+
+    ``Deal.id`` closes the ordering so paging is deterministic.
+    """
+    never_contacted = and_(
+        Deal.status == DealStatus.OPEN, Deal.first_whatsapp_contact_at.is_(None)
+    )
+    going_cold = and_(Deal.status == DealStatus.OPEN, Deal.last_activity_at < cutoff)
+    bucket = case((never_contacted, 1), (going_cold, 2), else_=3)
+    # Buckets 1 and 2 sort ASC on different columns; bucket 3 has no ascending
+    # key (NULL, sorted last inside its own bucket) and falls through to the
+    # DESC key below.
+    ascending_key = case(
+        (never_contacted, Deal.created_at), (going_cold, Deal.last_activity_at)
+    )
+    return [
+        bucket.asc(),
+        ascending_key.asc().nulls_last(),
+        Deal.last_activity_at.desc(),
+        Deal.id.asc(),
+    ]
+
+
 @router.get("/kanban", response_model=KanbanResponse)
 async def kanban(
     user: CurrentUser,
@@ -165,11 +207,26 @@ async def kanban(
     cycle_id: uuid.UUID | None = None,
     cooling: bool = False,
     no_next_step: bool = False,
+    cards_per_stage: int = Query(
+        default=CARDS_PER_STAGE_DEFAULT, ge=1, le=CARDS_PER_STAGE_MAX
+    ),
+    split_unassigned: bool = False,
 ) -> KanbanResponse:
     """Kanban columns with per-stage aggregates (count + sum of value).
 
     Without a ``status`` filter, open and won deals are shown (lost deals
-    leave the board but stay in the list view and reports)."""
+    leave the board but stay in the list view and reports).
+
+    Each column returns at most ``cards_per_stage`` cards (default 25, max
+    100), picked by ``_kanban_priority_order``; ``count`` and ``sum_value``
+    remain the REAL totals of the column, and ``has_more``/``remaining`` say
+    how much was left out. The unassigned queue (``owner_id IS NULL`` and
+    status ``open``) comes back capped the same way in ``unassigned``.
+
+    ``split_unassigned=true`` removes the queue from the columns entirely
+    (count and sum included), so the board and the queue never show the same
+    card twice. It defaults to ``false`` for backwards compatibility with the
+    frontend that still splits the queue client-side."""
     if pipeline_id is None:
         pipeline_id = (await deal_service.get_default_pipeline(db)).id
     stages = (
@@ -182,33 +239,74 @@ async def kanban(
 
     cooling_days = await get_cooling_days(db)
     cutoff = datetime.now(UTC) - timedelta(days=cooling_days)
+    order_by = _kanban_priority_order(cutoff)
+    in_queue = and_(Deal.owner_id.is_(None), Deal.status == DealStatus.OPEN)
 
-    stmt = (
-        select(Deal)
-        .options(selectinload(Deal.contact))
-        .where(deal_service.visible_deals_filter(user))
-    )
-    stmt = _apply_common_filters(
-        stmt,
-        pipeline_id=pipeline_id,
-        stage_id=None,
-        owner_id=owner_id,
-        unassigned=unassigned,
-        status_=status_filter,
-        unit_id=unit_id,
-        cycle_id=cycle_id,
-        no_next_step=no_next_step,
-    )
-    if status_filter is None:
-        stmt = stmt.where(Deal.status != DealStatus.LOST)
-    if cooling:
-        stmt = stmt.where(Deal.status == DealStatus.OPEN, Deal.last_activity_at < cutoff)
-    stmt = stmt.order_by(Deal.last_activity_at.desc())
-    deals = (await db.scalars(stmt)).all()
+    def scoped(stmt: Select[Any]) -> Select[Any]:
+        """Apply visibility + every board filter to any select on ``Deal``."""
+        stmt = stmt.where(deal_service.visible_deals_filter(user))
+        stmt = _apply_common_filters(
+            stmt,
+            pipeline_id=pipeline_id,
+            stage_id=None,
+            owner_id=owner_id,
+            unassigned=unassigned,
+            status_=status_filter,
+            unit_id=unit_id,
+            cycle_id=cycle_id,
+            no_next_step=no_next_step,
+        )
+        if status_filter is None:
+            stmt = stmt.where(Deal.status != DealStatus.LOST)
+        if cooling:
+            stmt = stmt.where(
+                Deal.status == DealStatus.OPEN, Deal.last_activity_at < cutoff
+            )
+        return stmt
 
-    by_stage: dict[uuid.UUID, list[Deal]] = {s.id: [] for s in stages}
-    for deal in deals:
-        by_stage.setdefault(deal.stage_id, []).append(deal)
+    def board(stmt: Select[Any]) -> Select[Any]:
+        stmt = scoped(stmt)
+        return stmt.where(not_(in_queue)) if split_unassigned else stmt
+
+    # Real per-column totals: computed in the database over the WHOLE column,
+    # never over the returned slice.
+    totals = {
+        row.stage_id: (row.deal_count, row.value_sum)
+        for row in (
+            await db.execute(
+                board(
+                    select(
+                        Deal.stage_id,
+                        func.count().label("deal_count"),
+                        func.coalesce(func.sum(Deal.value), 0).label("value_sum"),
+                    )
+                ).group_by(Deal.stage_id)
+            )
+        ).all()
+    }
+
+    # Capped cards: one window function ranks each column, so the database
+    # returns at most ``cards_per_stage`` rows per stage instead of everything.
+    ranked = board(
+        select(
+            Deal.id.label("deal_id"),
+            func.row_number()
+            .over(partition_by=Deal.stage_id, order_by=order_by)
+            .label("rn"),
+        )
+    ).subquery()
+    cards = (
+        await db.scalars(
+            select(Deal)
+            .options(selectinload(Deal.contact))
+            .where(
+                Deal.id.in_(
+                    select(ranked.c.deal_id).where(ranked.c.rn <= cards_per_stage)
+                )
+            )
+            .order_by(*order_by)
+        )
+    ).all()
 
     def make_card(d: Deal) -> DealCard:
         # naive/aware safety: DB returns aware datetimes (timestamptz)
@@ -233,24 +331,61 @@ async def kanban(
             first_whatsapp_contact_at=d.first_whatsapp_contact_at,
         )
 
+    by_stage: dict[uuid.UUID, list[DealCard]] = {s.id: [] for s in stages}
+    for deal in cards:
+        by_stage.setdefault(deal.stage_id, []).append(make_card(deal))
+
+    columns: list[KanbanStage] = []
+    for stage in stages:
+        count, sum_value = totals.get(stage.id, (0, Decimal("0")))
+        shown = by_stage.get(stage.id, [])
+        columns.append(
+            KanbanStage(
+                stage_id=stage.id,
+                name=stage.name,
+                sort_order=stage.sort_order,
+                is_won_stage=stage.is_won_stage,
+                count=count,
+                sum_value=Decimal(sum_value),
+                deals=shown,
+                has_more=count > len(shown),
+                remaining=max(count - len(shown), 0),
+            )
+        )
+
+    # Unassigned queue — same cap, its own real totals.
+    queue_total = (
+        await db.execute(
+            scoped(
+                select(
+                    func.count().label("deal_count"),
+                    func.coalesce(func.sum(Deal.value), 0).label("value_sum"),
+                )
+            ).where(in_queue)
+        )
+    ).one()
+    queue_deals = (
+        await db.scalars(
+            scoped(select(Deal).options(selectinload(Deal.contact)))
+            .where(in_queue)
+            .order_by(*order_by)
+            .limit(cards_per_stage)
+        )
+    ).all()
+    queue_cards = [make_card(d) for d in queue_deals]
+
     return KanbanResponse(
         pipeline_id=pipeline_id,
         cooling_days=cooling_days,
-        stages=[
-            KanbanStage(
-                stage_id=s.id,
-                name=s.name,
-                sort_order=s.sort_order,
-                is_won_stage=s.is_won_stage,
-                count=len(by_stage[s.id]),
-                sum_value=sum(
-                    (d.value for d in by_stage[s.id] if d.value is not None),
-                    Decimal("0"),
-                ),
-                deals=[make_card(d) for d in by_stage[s.id]],
-            )
-            for s in stages
-        ],
+        cards_per_stage=cards_per_stage,
+        stages=columns,
+        unassigned=KanbanQueue(
+            count=queue_total.deal_count,
+            sum_value=Decimal(queue_total.value_sum),
+            deals=queue_cards,
+            has_more=queue_total.deal_count > len(queue_cards),
+            remaining=max(queue_total.deal_count - len(queue_cards), 0),
+        ),
     )
 
 
@@ -365,7 +500,9 @@ async def create_deal(body: DealCreate, user: CurrentUser, db: DbSession) -> Dea
         value=body.value,
         qualification=body.qualification,
         expected_close_date=body.expected_close_date,
-        source=body.source,
+        # Free text in, catalog key out (feedback item 5): "Meta Ads" and
+        # "meta" both land on ``meta_ads`` so the CAC report stops splitting.
+        source=await resolve_source(db, body.source),
         campaign=body.campaign,
         enrollment_data=body.enrollment_data.dump_json_dict() if body.enrollment_data else {},
     )
@@ -400,8 +537,21 @@ async def get_deal(deal_id: uuid.UUID, user: CurrentUser, db: DbSession) -> Deal
 
 @router.patch("/{deal_id}", response_model=DealOut)
 async def update_deal(
-    deal_id: uuid.UUID, body: DealUpdate, user: CurrentUser, db: DbSession
+    deal_id: uuid.UUID,
+    body: DealUpdate,
+    user: CurrentUser,
+    db: DbSession,
+    enrollment_data_mode: EnrollmentDataMode | None = Query(default=None),
 ) -> DealOut:
+    """Partial update.
+
+    ``enrollment_data`` is shallow-merged by default (feedback item 4): keys
+    absent from the payload are preserved, a key sent as ``null`` is cleared.
+    ``enrollment_data_mode=replace`` (query param, or the same field in the
+    body) restores the destructive full-replace behaviour.
+
+    ``source`` is normalized to a catalog key on the way in (feedback item 5).
+    """
     deal = await deal_service.get_deal_scoped(db, deal_id, user, for_edit=True)
     if deal.status != DealStatus.OPEN and user.role != UserRole.ADMIN:
         raise ConflictError(
@@ -413,11 +563,13 @@ async def update_deal(
         await deal_service.change_owner(db, deal, user, body.owner_id)
     for field in (
         "title", "unit_id", "value", "qualification",
-        "expected_close_date", "source", "campaign",
+        "expected_close_date", "campaign",
     ):
         value = getattr(body, field)
         if value is not None:
             setattr(deal, field, value)
+    if body.source is not None:
+        deal.source = await resolve_source(db, body.source)
     if "next_contact_at" in body.model_fields_set:
         # Explicit null clears the next step ("no next step" badge returns).
         deal.next_contact_at = body.next_contact_at
@@ -427,8 +579,16 @@ async def update_deal(
             await deal_service.get_active_objection(db, body.objection_id)
         deal.objection_id = body.objection_id
     if body.enrollment_data is not None:
-        # Full replace: the client always submits the whole enrollment form.
-        deal.enrollment_data = body.enrollment_data.dump_json_dict()
+        # Shallow merge by default (feedback item 4). The frontend keeps
+        # sending the whole form, which merges to the same result; a partial
+        # client (extension, script, integration) no longer erases the keys it
+        # did not send. Explicit opt-in restores the full replace.
+        mode = enrollment_data_mode or body.enrollment_data_mode or "merge"
+        deal.enrollment_data = (
+            body.enrollment_data.dump_json_dict()
+            if mode == "replace"
+            else body.enrollment_data.merge_into(deal.enrollment_data)
+        )
     await db.flush()
     return DealOut.model_validate(deal)
 
